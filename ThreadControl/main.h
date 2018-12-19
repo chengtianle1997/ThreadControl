@@ -4,10 +4,10 @@
 #include "FFmpegEncode.h"
 #include "GaussCal.h"
 
-Camera camera;
+stop_watch watch;
 
-GaussCal gausscal;
+Camera camera;
 
 Encoder encoder;
 
-stop_watch watch;
+GaussCal Gausscal;

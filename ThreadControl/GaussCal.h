@@ -71,7 +71,7 @@ public:
 
 private:
 	//calculate the n_th of x
-	double fx(int x, int n);
+	int fx(int x, int n);
 
 	//generate x and z Cvmat 
 	int getXZmatrix(CvMat* X, CvMat* Z, int n, GPoint *gpoint);
@@ -79,7 +79,7 @@ private:
 	int bound(short i, short a, short b);
 
 	//On_Mouse_Callback
-	void on_mouse(int event, int x, int y, int flags, void* ustc);
+	static void on_mouse(int event, int x, int y, int flags, void* ustc);
 
 	//The reverse of CvScarlar
 	CvScalar getInverseColor(CvScalar c);
@@ -93,4 +93,4 @@ private:
 	int n = 0;
 
 	vector<Point> points;
-}Gausscal;
+};

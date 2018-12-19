@@ -2,8 +2,10 @@
 
 #include "GaussCal.h"
 
+GaussCal GausscalPrivate;
+
 //calculate the n_th of x
-double GaussCal::fx(int x, int n) {
+int GaussCal::fx(int x, int n) {
 	int y;
 	if (n == 0)
 	{
@@ -327,7 +329,7 @@ void  GaussCal::on_mouse(int event, int x, int y, int flags, void* ustc)
 
 	{
 
-		dst.copyTo(src);
+		GausscalPrivate.dst.copyTo(GausscalPrivate.src);
 
 		//x = bound(x, 0, &src->width - 1);
 
@@ -335,7 +337,7 @@ void  GaussCal::on_mouse(int event, int x, int y, int flags, void* ustc)
 
 		pt = Point(x, y);
 
-		circle(src, pt, 2, clrPoint, 1, 8, 0);
+		circle(GausscalPrivate.src, pt, 2, clrPoint, 1, 8, 0);
 
 
 		//sprintf(temp, "%d (%d,%d)", n + 1, x, y);
@@ -352,9 +354,9 @@ void  GaussCal::on_mouse(int event, int x, int y, int flags, void* ustc)
 
 		tmp_pt = Point(x + 30, y);
 
-		putText(src, temp, tmp_pt, 2, 1, clrText, 1, 8, 0);
+		putText(GausscalPrivate.src, temp, tmp_pt, 2, 1, clrText, 1, 8, 0);
 
-		imshow("GaussManuIden", src);
+		imshow("GaussManuIden", GausscalPrivate.src);
 
 	}
 
@@ -364,9 +366,9 @@ void  GaussCal::on_mouse(int event, int x, int y, int flags, void* ustc)
 
 		pt = cvPoint(x, y);
 
-		points.push_back(pt); n++;
+		GausscalPrivate.points.push_back(pt); GausscalPrivate.n++;
 
-		circle(src, pt, 2, clrPoint, 1, 8, 0);
+		circle(GausscalPrivate.src, pt, 2, clrPoint, 1, 8, 0);
 
 		//sprintf(temp, "%d (%d,%d)", n, x, y);
 
@@ -381,29 +383,29 @@ void  GaussCal::on_mouse(int event, int x, int y, int flags, void* ustc)
 
 		tmp_pt = Point(x + 30, y);
 
-		putText(src, temp, tmp_pt, 2, 1, clrText, 1, 8, 0);
+		putText(GausscalPrivate.src, temp, tmp_pt, 2, 1, clrText, 1, 8, 0);
 
-		src.copyTo(dst);
+		GausscalPrivate.src.copyTo(GausscalPrivate.dst);
 
-		imshow("GaussManuIden", src);
+		imshow("GaussManuIden", GausscalPrivate.src);
 
 	}
 
 	else if (event == CV_EVENT_RBUTTONDOWN)
 
 	{
-		ori.copyTo(src);
+		GausscalPrivate.ori.copyTo(GausscalPrivate.src);
 
-		ori.copyTo(dst);
+		GausscalPrivate.ori.copyTo(GausscalPrivate.dst);
 
-		imshow("GaussManuIden", src);
+		imshow("GaussManuIden", GausscalPrivate.src);
 
 
 
-		while (!points.empty()) {
-			points.pop_back();
+		while (!GausscalPrivate.points.empty()) {
+			GausscalPrivate.points.pop_back();
 		}
-		n = 0;
+		GausscalPrivate.n = 0;
 
 		//{
 
@@ -440,7 +442,6 @@ void  GaussCal::on_mouse(int event, int x, int y, int flags, void* ustc)
 //Manual indentification for error by mouse click
 void GaussCal::GaussManuIden(GaussManuIdenParam gaussmanuidenparam) {
 	//src = imread("lena.jpg", 1);
-	//GaussCal Gausscal;
 	src = gaussmanuidenparam.matImage.clone();
 
 	dst = src.clone();
@@ -449,7 +450,7 @@ void GaussCal::GaussManuIden(GaussManuIdenParam gaussmanuidenparam) {
 
 	cvNamedWindow("GaussManuIden", 0);
 
-	cvSetMouseCallback("GaussManuIden", Gausscal.on_mouse, (void*)gaussmanuidenparam.point);
+	cvSetMouseCallback("GaussManuIden", GausscalPrivate.on_mouse, (void*)gaussmanuidenparam.point);
 
 	imshow("GaussManuIden", src);
 

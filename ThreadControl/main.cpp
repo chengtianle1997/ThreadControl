@@ -62,12 +62,12 @@ int CameraClean()
 }
 
 
-int EncoderInit(EncoderParam encoderparam)
+void EncoderInit(EncoderParam encoderparam)
 {
 	encoder.Init(encoderparam);
 }
 
-int EncoderClean()
+void EncoderClean()
 {
 	encoder.Clean();
 }
@@ -78,8 +78,10 @@ int main(int argc,char* argv[])
 	CameraInitParam camerainitparam;
 	EncoderParam encoderparam;
 	CameraInit(camerainitparam);
+	
 	encoderparam.in_w = camerainitparam.in_w;
 	encoderparam.in_h = camerainitparam.in_h;
+	//printf("%dx%d", encoderparam.in_w, encoderparam.in_h);
 	EncoderInit(encoderparam);
 
 

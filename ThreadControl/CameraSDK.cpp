@@ -42,17 +42,20 @@ int Camera::OpenCamera(CameraInitParam &camerainitparam)
 	if (camerainitparam.devNum >= stDevList.nDeviceNum)
 	{
 		printf("Intput error!\n");
+		return -1;
 	}
 	//选择设备并创建句柄
 	nRet = MV_CC_CreateHandle(&handle, stDevList.pDeviceInfo[camerainitparam.devNum]);
 	if (MV_OK != nRet)
 	{
 		printf("Create Handle fail! nRet [0x%x]\n", nRet);
+		return nRet;
 	}
 	nRet = MV_CC_OpenDevice(handle);
 	if (MV_OK != nRet)
 	{
 		printf("Open Device fail! nRet [0x%x]\n", nRet);
+		return nRet;
 	}
 	else {
 		printf("Device is ready!\n");
@@ -63,6 +66,7 @@ int Camera::OpenCamera(CameraInitParam &camerainitparam)
 	if (MV_OK != nRet)
 	{
 		printf("Set Trigger Mode fail! nRet [0x%x]\n", nRet);
+		return nRet;
 	}
 
 	//获取数据包大小
@@ -72,16 +76,30 @@ int Camera::OpenCamera(CameraInitParam &camerainitparam)
 	if (MV_OK != nRet)
 	{
 		printf("Get PayloadSize fail! nRet [0x%x]\n", nRet);
+		return nRet;
 	}
 	g_nPayloadSize = stParam.nCurValue;
 
 	//Get the width and Height of the Camera
 	MVCC_INTVALUE pIntValue;
 	memset(&pIntValue, 0, sizeof(MVCC_INTVALUE));
-	MV_CC_GetIntValue(handle, "Width", &pIntValue);
+	nRet = MV_CC_GetIntValue(handle, "Width", &pIntValue);
+	if (MV_OK != nRet)
+	{
+		printf("Get Width fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
 	camerainitparam.in_w = pIntValue.nCurValue;
-	MV_CC_GetIntValue(handle, "Height", &pIntValue);
+	//printf("%d", camerainitparam.in_w);
+	nRet = MV_CC_GetIntValue(handle, "Height", &pIntValue);
+	if (MV_OK != nRet)
+	{
+		printf("Get Height fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
 	camerainitparam.in_h = pIntValue.nCurValue;
+	//printf("%d", camerainitparam.in_h);
+	return nRet;
 }
 
 //Set ExposureTime 
@@ -196,3 +214,22 @@ int Camera::CloseDevice()
 	return nRet;
 }
 
+bool  Camera::PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo)
+{
+	if (pstMVDevInfo == NULL)
+	{
+		printf("The Pointer of pstMVDevInfo is NULL!\n");
+		return false;
+	}
+	if (pstMVDevInfo->nTLayerType == MV_USB_DEVICE)
+	{
+		printf("UserDefinedName: %s\n", pstMVDevInfo->SpecialInfo.stUsb3VInfo.chUserDefinedName);
+		printf("Serial Number: %s\n", pstMVDevInfo->SpecialInfo.stUsb3VInfo.chSerialNumber);
+		printf("Device Number: %d\n\n", pstMVDevInfo->SpecialInfo.stUsb3VInfo.nDeviceNumber);
+	}
+	else
+	{
+		printf("Not Support!\n");
+	}
+	return true;
+}
