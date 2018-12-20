@@ -53,7 +53,7 @@ private:
 
 	MV_CC_DEVICE_INFO_LIST stDevList;  //Device_List
 
-	MV_FRAME_OUT stOutFrame = { 0 }; //Frame_Out
+	//MV_FRAME_OUT stOutFrame = { 0 }; //Frame_Out
 
 	void* handle = NULL;  //Camera_Handle
 

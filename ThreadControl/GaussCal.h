@@ -59,7 +59,7 @@ typedef struct
 class GaussCal {
 public:
 	//Sub-Pixel center-line detection algorithm base on GaussFit
-	void GaussCenter(GaussCalParam guasscalparam);
+	void GaussCenter(GaussCalParam &guasscalparam);
 
 	//Automatical Identification for error base on the gate you can choose
 	void GaussIdentify(GaussIdentifyParam gaussidentifyparam);

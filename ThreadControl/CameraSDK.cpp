@@ -147,32 +147,35 @@ int Camera::StartGrabbing()
 		printf("Start Grabbing fail! nRet [0x%x]\n", nRet);
 		return nRet;
 	}
-	memset(&stOutFrame, 0, sizeof(MV_FRAME_OUT));
+	//memset(&stOutFrame, 0, sizeof(MV_FRAME_OUT));
 	return nRet;
 }
 
 //Get Image
 int Camera::GetImage(MV_FRAME_OUT &stOutFrame) {
+	//stOutFrame = { 0 };
+	//memset(&stOutFrame, 0, sizeof(MV_FRAME_OUT));
+	//stOutFrame = (MV_FRAME_OUT*)malloc(sizeof(MV_FRAME_OUT));
 	nRet = MV_CC_GetImageBuffer(handle, &stOutFrame, 1000);
 	if (nRet == MV_OK)
 	{
-		return nRet;
+		//printf("Get One Frame: Width[%d], Height[%d], nFrameNum[%d]\n",
+			//(stOutFrame).stFrameInfo.nWidth, (stOutFrame).stFrameInfo.nHeight, (stOutFrame).stFrameInfo.nFrameNum);
 	}
 	else
 	{
 		printf("No data[0x%x]\n", nRet);
-		return nRet;
 	}
-	if (NULL != stOutFrame.pBufAddr)
+	if (NULL != (stOutFrame).pBufAddr)
 	{
 		nRet = MV_CC_FreeImageBuffer(handle, &stOutFrame);
 		if (nRet != MV_OK)
 		{
 			printf("Free Image Buffer fail! nRet [0x%x]\n", nRet);
 		}
-		return nRet;
+		
 	}
-
+	return nRet;
 }
 
 //Stop Grabing Image

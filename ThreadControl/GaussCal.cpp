@@ -40,7 +40,7 @@ int GaussCal::getXZmatrix(CvMat* X, CvMat* Z, int n, GPoint *gpoint) {
 }
 
 //Sub-Pixel center-line detection algorithm base on GaussFit
-void GaussCal::GaussCenter(GaussCalParam guasscalparam) {
+void GaussCal::GaussCenter(GaussCalParam &guasscalparam) {
 	Mat cloneImage = guasscalparam.matImage.clone();
 	//Mat OrgnImage = matImage.clone();
 	//先运用canny检测得到初步中心线
@@ -58,7 +58,7 @@ void GaussCal::GaussCenter(GaussCalParam guasscalparam) {
 	//brightness = new int[Rows];
 	//memset(brightness, 0, Rows);
 	//getPeaker1(matImage, point);
-#pragma omp parallel for num_threads(threads)
+#pragma omp parallel for num_threads(guasscalparam.threads)
 	for (int i = 0; i < Rows; i++)
 	{
 		uchar* data = guasscalparam.matImage.ptr<uchar>(i);
@@ -122,7 +122,7 @@ void GaussCal::GaussCenter(GaussCalParam guasscalparam) {
 //	int Rows = cloneImage.rows;//y
 
 	//逐行存储所有点的x坐标和亮度值以便分析 在此只存入高斯点
-#pragma omp parallel for num_threads(threads)
+#pragma omp parallel for num_threads(guasscalparam.threads)
 	for (int i = 0; i < Rows; i++) {
 		int PixelData;
 		int Pixnum = 0;
@@ -244,7 +244,7 @@ void GaussCal::GaussCenter(GaussCalParam guasscalparam) {
 			guasscalparam.point[i].bright = 0;
 		}
 		guasscalparam.point[i].cy = i;
-		//printf("(%lf , %lf): %d)\n", point[i].cx, point[i].cy,point[i].brightness);
+		//printf("(%lf , %lf): %d)\n", guasscalparam.point[i].cx, guasscalparam.point[i].cy, guasscalparam.point[i].brightness);
 		delete[]gpoint;
 	}
 }
@@ -270,6 +270,7 @@ void GaussCal::GaussIdentify(GaussIdentifyParam gaussidentifyparam) {
 	}
 	namedWindow("GaussIdentify", 0);
 	imshow("GaussIdentify", gaussidentifyparam.matImage);
+	cvWaitKey(0);
 }
 
 int GaussCal::bound(short i, short a, short b)
@@ -442,25 +443,25 @@ void  GaussCal::on_mouse(int event, int x, int y, int flags, void* ustc)
 //Manual indentification for error by mouse click
 void GaussCal::GaussManuIden(GaussManuIdenParam gaussmanuidenparam) {
 	//src = imread("lena.jpg", 1);
-	src = gaussmanuidenparam.matImage.clone();
+	GausscalPrivate.src = gaussmanuidenparam.matImage.clone();
 
-	dst = src.clone();
+	GausscalPrivate.dst = GausscalPrivate.src.clone();
 
-	ori = src.clone();
+	GausscalPrivate.ori = GausscalPrivate.src.clone();
 
 	cvNamedWindow("GaussManuIden", 0);
 
 	cvSetMouseCallback("GaussManuIden", GausscalPrivate.on_mouse, (void*)gaussmanuidenparam.point);
 
-	imshow("GaussManuIden", src);
+	imshow("GaussManuIden", GausscalPrivate.src);
 
 	cvWaitKey(0);
 
 	cvDestroyAllWindows();
 
-	src.release();
+	GausscalPrivate.src.release();
 
-	dst.release();
+	GausscalPrivate.dst.release();
 
 
 
