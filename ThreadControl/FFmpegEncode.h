@@ -27,9 +27,12 @@ typedef struct {
 	unsigned char* pBufAddr;
 	
 	//Timestamp
-	int pts = 0;
+	int pts;
 	//CameraNum
 	int CameraNum = 0;
+
+	//FrameCut
+	int FrameCut;//Encode 1 frame before every FrameCut frame
 
 }EncodeParam;
 

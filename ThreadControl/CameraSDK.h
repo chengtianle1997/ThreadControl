@@ -14,9 +14,11 @@ using namespace cv;
 using namespace std;
 
 typedef struct {
-	int devNum;
-	int in_w;
+	int devNum; //device num
+	int in_w; 
 	int in_h;
+	float AcquisitionFrameRate; //The value is in effect when Trigger Mode is off
+
 
 }CameraInitParam;
 class Camera {

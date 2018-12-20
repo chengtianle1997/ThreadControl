@@ -11,6 +11,12 @@ GaussCalParam Calparam;
 
 GaussIdentifyParam IdentifyParam;
 
+CameraInitParam camerainitparam;
+
+EncoderParam encoderparam;
+
+EncodeParam encodeparam;
+
 //State of occupation
 BOOL Buffer0Mutex = 0;
 BOOL Buffer1Mutex = 0;
@@ -23,11 +29,17 @@ BOOL GetImage1 = 0;
 BOOL CalEnd0 = 0;
 BOOL CalEnd1 = 0;
 
+//Indicate the require to encode
+BOOL CodeState0 = 0;
+BOOL CodeState1 = 0;
 
 
 //The double buffer
 unsigned char* Buffer0;
 unsigned char* Buffer1;
+//The information of buffer
+//MV_FRAME_OUT_INFO_EX Buffer0Info;
+//MV_FRAME_OUT_INFO_EX Buffer1Info;
 
 int SizeofPixels = 0;
 int ImageWidth = 0;
@@ -83,8 +95,6 @@ int CameraInit(CameraInitParam &camerainitparam)
 	{
 		return ret;
 	}
-
-	
 
 	ImageWidth = camerainitparam.in_w;
 	ImageHeight = camerainitparam.in_h;
@@ -209,6 +219,8 @@ void AcqImageThread()
 	CalEnd0 = 1;
 	CalEnd1 = 1;
 
+	int Framenum;
+
 	while (!AcqExit) {
 
 		//stOutFrame = (MV_FRAME_OUT*)malloc(sizeof(MV_FRAME_OUT));
@@ -220,6 +232,11 @@ void AcqImageThread()
 			Buffer0Mutex = 1;
 			memcpy(Buffer0, (stOutFrame).pBufAddr, SizeofPixels);
 			Buffer0Mutex = 0;
+			//Buffer0Info = stOutFrame.stFrameInfo;
+			Framenum = stOutFrame.stFrameInfo.nFrameNum;
+			//Decide if Encode
+			if (Framenum % (encodeparam.FrameCut + 1) == 0)
+				CodeState0 = 1;
 			CalEnd0 = 0;
 			GetImage0 = 1;
 		}
@@ -228,16 +245,39 @@ void AcqImageThread()
 			Buffer1Mutex = 1;
 			memcpy(Buffer1, (stOutFrame).pBufAddr, SizeofPixels);
 			Buffer1Mutex = 0;
+			//Buffer1Info = stOutFrame.stFrameInfo;
+			Framenum = stOutFrame.stFrameInfo.nFrameNum;
+			//Decide if Encode
+			if (Framenum % (encodeparam.FrameCut + 1) == 0)
+				CodeState1 = 1;
 			CalEnd1 = 0;
 			GetImage1 = 1;
 		}
-
 	}
 }
 
 void EncodeThread()
 {
-
+	int pts = 0; //inner frame counter 
+	while (!EncodeExit) {
+		if (CodeState0 && !Buffer0Mutex)
+		{
+			encodeparam.pBufAddr = Buffer0;
+			encodeparam.pts = pts;
+			encoder.Encode(encodeparam);
+			pts++;
+			CodeState0 = 0;
+		}
+		else if (CodeState1 && !Buffer1Mutex)
+		{
+			encodeparam.pBufAddr = Buffer1;
+			encodeparam.pts = pts;
+			encoder.Encode(encodeparam);
+			pts++;
+			CodeState1 = 0;
+		}
+	}
+	 
 }
 
 void TimerPerformance()
@@ -262,8 +302,7 @@ void TimerPerformance()
 int main(int argc,char* argv[])
 {
 	int ret;
-	CameraInitParam camerainitparam;
-	EncoderParam encoderparam;
+	camerainitparam.AcquisitionFrameRate = 60.0;
 	ret = CameraInit(camerainitparam);
 	if (ret) {
 		printf("Camera Init failed\n");
@@ -284,20 +323,31 @@ int main(int argc,char* argv[])
 	//set the identify param
 	IdentifyParam.doorin = 0.39;
 
+	//Encodeparam
+	encodeparam.CameraNum = 0;
+	encodeparam.FrameCut = 5;
+	encodeparam.nHeight = ImageHeight;
+	encodeparam.nWidth = ImageWidth;
+
+
 	//AcqImageThread();
 	//watch.start();
 
-	thread acqthread0(AcqImageThread); 
+	thread acqthread(AcqImageThread);
 
-	thread calthread0(CalImageThread);
+	thread calthread(CalImageThread);
 
 	thread Timer(TimerPerformance);
 
-	acqthread0.join();
+	thread Encoder(EncodeThread);
 
-	calthread0.join();
+	acqthread.join();
+
+	calthread.join();
 
 	Timer.join();
+
+	Encoder.join();
 
 	return 0;
 }
