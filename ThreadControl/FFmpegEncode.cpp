@@ -221,5 +221,7 @@ int Encoder::Clean()
 
 	avformat_free_context(pFormatCtx);
 
+	return 0;
+
 }
 

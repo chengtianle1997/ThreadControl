@@ -1,60 +1,9 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
+//#define ENCODE_ENABLE 
+
 #include "main.h"
-#include <thread>
-#include <mutex>
-
-mutex m;
-
-GaussCalParam Calparam;
-
-GaussIdentifyParam IdentifyParam;
-
-CameraInitParam camerainitparam;
-
-EncoderParam encoderparam;
-
-EncodeParam encodeparam;
-
-//State of occupation
-BOOL Buffer0Mutex = 0;
-BOOL Buffer1Mutex = 0;
-
-//Indicate got image
-BOOL GetImage0 = 0;
-BOOL GetImage1 = 0;
-
-//Indicate Calculation end
-BOOL CalEnd0 = 0;
-BOOL CalEnd1 = 0;
-
-//Indicate the require to encode
-BOOL CodeState0 = 0;
-BOOL CodeState1 = 0;
-
-
-//The double buffer
-unsigned char* Buffer0;
-unsigned char* Buffer1;
-//The information of buffer
-//MV_FRAME_OUT_INFO_EX Buffer0Info;
-//MV_FRAME_OUT_INFO_EX Buffer1Info;
-
-int SizeofPixels = 0;
-int ImageWidth = 0;
-int ImageHeight = 0;
-
-//The Exit Instruction(Set 1 to Stop)
-int AcqExit = 0;
-int CalExit = 0;
-int EncodeExit = 0;
-
-//Functional choice
-int ResVisAuto = 0;
-int ResVisManu = 0;
-
-int PerforFramecnt = 0;
 
 
 int CameraInit(CameraInitParam &camerainitparam)
@@ -135,6 +84,25 @@ void EncoderClean()
 	encoder.Clean();
 }
 
+void ClientInit()
+{
+	int ret;
+
+	printf("The Client is connecting.....\n");
+
+	ret = client.ClientConnect(ServerPort, ServerAddr);
+
+	if (ret)
+	{
+		printf("Connecting failed!");
+	}
+}
+
+void ClientClean() {
+	printf("Closing Socket......\n");
+	client.ClientClose();
+}
+
 void CalImageThread()
 {
 	//Find buffer to cal
@@ -151,6 +119,7 @@ void CalImageThread()
 			Calparam.matImage = matImage;
 			Calparam.point = new MPoint[ImageHeight];
 			Gausscal.GaussCenter(Calparam);
+
 			//Process the Result
 			if (ResVisAuto) {
 
@@ -168,6 +137,21 @@ void CalImageThread()
 
 			}
 			CalEnd0 = 1;
+
+			//Package the Data
+			SocketPackage PackageData0;
+			PackageData0.CameraNum = DeviceNum;
+			PackageData0.Framecnt = Buffer0Info.nFrameNum;
+			for (int i = 0; i < ImageHeight; i++)
+				PackageData0.Res[i] = Calparam.point[i].cx;
+			//SendQueue.push(PackageData0);
+			//int q = SendQueue.size();
+			char* buf = (char*)malloc(sizeof(SocketPackage));
+
+			memcpy(buf, &PackageData0, sizeof(SocketPackage));
+
+			client.ClientSend(buf, sizeof(SocketPackage));
+
 			//Performance Check
 			PerforFramecnt++;
 			delete(Calparam.point);
@@ -201,6 +185,20 @@ void CalImageThread()
 
 			}
 			CalEnd1 = 1;
+
+			//Package the Data
+			SocketPackage PackageData1;
+			PackageData1.CameraNum = DeviceNum;
+			PackageData1.Framecnt = Buffer1Info.nFrameNum;
+			for (int i = 0; i < ImageHeight; i++)
+				PackageData1.Res[i] = Calparam.point[i].cx;
+			SendQueue.push(PackageData1);
+			
+			char* buf = (char*)malloc(sizeof(SocketPackage));
+
+			memcpy(buf, &PackageData1, sizeof(SocketPackage));
+
+			client.ClientSend(buf, sizeof(SocketPackage));
 			//Performance Check
 			PerforFramecnt++;
 			delete(Calparam.point);
@@ -232,11 +230,13 @@ void AcqImageThread()
 			Buffer0Mutex = 1;
 			memcpy(Buffer0, (stOutFrame).pBufAddr, SizeofPixels);
 			Buffer0Mutex = 0;
-			//Buffer0Info = stOutFrame.stFrameInfo;
+			Buffer0Info = stOutFrame.stFrameInfo;
 			Framenum = stOutFrame.stFrameInfo.nFrameNum;
+#ifdef ENCODE_ENABLE
 			//Decide if Encode
 			if (Framenum % (encodeparam.FrameCut + 1) == 0)
 				CodeState0 = 1;
+#endif
 			CalEnd0 = 0;
 			GetImage0 = 1;
 		}
@@ -245,11 +245,13 @@ void AcqImageThread()
 			Buffer1Mutex = 1;
 			memcpy(Buffer1, (stOutFrame).pBufAddr, SizeofPixels);
 			Buffer1Mutex = 0;
-			//Buffer1Info = stOutFrame.stFrameInfo;
+			Buffer1Info = stOutFrame.stFrameInfo;
 			Framenum = stOutFrame.stFrameInfo.nFrameNum;
+#ifdef ENCODE_ENABLE
 			//Decide if Encode
 			if (Framenum % (encodeparam.FrameCut + 1) == 0)
 				CodeState1 = 1;
+#endif
 			CalEnd1 = 0;
 			GetImage1 = 1;
 		}
@@ -279,7 +281,7 @@ void EncodeThread()
 	}
 	 
 }
-
+//TIme to Test Performance
 void TimerPerformance()
 {
 	watch.start();
@@ -298,6 +300,31 @@ void TimerPerformance()
 	}
 	 
 }
+//The Extra thread for Send
+void SendResToPort() {
+
+	while (!SendExit || !SendQueue.empty())
+	{
+		int i = SendQueue.size();
+		printf("%d\n", i);
+		if (!SendQueue.empty())
+		{
+			SocketPackage SockPack;
+
+			SockPack = SendQueue.front();
+
+			char* buf = (char*)malloc(sizeof(SocketPackage));
+
+			memcpy(buf, &SockPack, sizeof(SocketPackage));
+
+			client.ClientSend(buf, sizeof(SocketPackage));
+
+			SendQueue.pop();
+
+			free(buf);
+		}
+	}
+}
 
 int main(int argc,char* argv[])
 {
@@ -314,6 +341,7 @@ int main(int argc,char* argv[])
 	EncoderInit(encoderparam);
 	printf("Please input the thread num:");
 	scanf("%d", &Calparam.threads);
+	ClientInit();
 	//set the calculation param
 	Calparam.maxError = 0.05;
 	Calparam.minError = 0.10;
@@ -339,15 +367,26 @@ int main(int argc,char* argv[])
 
 	thread Timer(TimerPerformance);
 
+	//thread SendClient(SendResToPort);
+#ifdef ENCODE_ENABLE
 	thread Encoder(EncodeThread);
-
+#endif
 	acqthread.join();
 
 	calthread.join();
 
 	Timer.join();
-
+#ifdef ENCODE_ENABLE
 	Encoder.join();
+#endif
+	//SendClient.join();
+	ret = CameraClean();
+	if (ret) {
+		printf("Camera Clean failed\n");
+	}
+	CameraClean();
+	EncoderClean();
+	ClientClean();
 
 	return 0;
 }

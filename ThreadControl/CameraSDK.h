@@ -18,9 +18,9 @@ typedef struct {
 	int in_w; 
 	int in_h;
 	float AcquisitionFrameRate; //The value is in effect when Trigger Mode is off
-
-
 }CameraInitParam;
+
+
 class Camera {
 public:
 	//Get Device List

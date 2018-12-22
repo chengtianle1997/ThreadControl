@@ -122,12 +122,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CameraSDK.cpp" />
+    <ClCompile Include="ClientNet.cpp" />
     <ClCompile Include="FFmpegEncode.cpp" />
     <ClCompile Include="GaussCal.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CameraSDK.h" />
+    <ClInclude Include="ClientNet.h" />
     <ClInclude Include="FFmpegEncode.h" />
     <ClInclude Include="GaussCal.h" />
     <ClInclude Include="main.h" />
