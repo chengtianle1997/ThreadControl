@@ -1,7 +1,7 @@
 
-#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS 
 
-//#define ENCODE_ENABLE 
+//#define ENCODE_ENABLE
 
 #include "main.h"
 
@@ -146,12 +146,17 @@ void CalImageThread()
 				PackageData0.Res[i] = Calparam.point[i].cx;
 			//SendQueue.push(PackageData0);
 			//int q = SendQueue.size();
-			char* buf = (char*)malloc(sizeof(SocketPackage));
+			if (EnableSendData) 
+			{
+				char* buf = (char*)malloc(sizeof(SocketPackage));
 
-			memcpy(buf, &PackageData0, sizeof(SocketPackage));
+				memcpy(buf, &PackageData0, sizeof(SocketPackage));
 
-			client.ClientSend(buf, sizeof(SocketPackage));
+				client.ClientSend(buf, sizeof(SocketPackage));
 
+				free(buf);
+			}
+			
 			//Performance Check
 			PerforFramecnt++;
 			delete(Calparam.point);
@@ -192,13 +197,15 @@ void CalImageThread()
 			PackageData1.Framecnt = Buffer1Info.nFrameNum;
 			for (int i = 0; i < ImageHeight; i++)
 				PackageData1.Res[i] = Calparam.point[i].cx;
-			SendQueue.push(PackageData1);
-			
-			char* buf = (char*)malloc(sizeof(SocketPackage));
+			//SendQueue.push(PackageData1);
+			if (EnableSendData)
+			{
+				char* buf = (char*)malloc(sizeof(SocketPackage));
 
-			memcpy(buf, &PackageData1, sizeof(SocketPackage));
+				memcpy(buf, &PackageData1, sizeof(SocketPackage));
 
-			client.ClientSend(buf, sizeof(SocketPackage));
+				client.ClientSend(buf, sizeof(SocketPackage));
+			}
 			//Performance Check
 			PerforFramecnt++;
 			delete(Calparam.point);
@@ -232,11 +239,13 @@ void AcqImageThread()
 			Buffer0Mutex = 0;
 			Buffer0Info = stOutFrame.stFrameInfo;
 			Framenum = stOutFrame.stFrameInfo.nFrameNum;
-#ifdef ENCODE_ENABLE
-			//Decide if Encode
-			if (Framenum % (encodeparam.FrameCut + 1) == 0)
-				CodeState0 = 1;
-#endif
+			if (EncodeEnable) {
+				//Decide if Encode
+				if (Framenum % (encodeparam.FrameCut + 1) == 0)
+					CodeState0 = 1;
+			}
+			
+
 			CalEnd0 = 0;
 			GetImage0 = 1;
 		}
@@ -247,11 +256,11 @@ void AcqImageThread()
 			Buffer1Mutex = 0;
 			Buffer1Info = stOutFrame.stFrameInfo;
 			Framenum = stOutFrame.stFrameInfo.nFrameNum;
-#ifdef ENCODE_ENABLE
-			//Decide if Encode
-			if (Framenum % (encodeparam.FrameCut + 1) == 0)
-				CodeState1 = 1;
-#endif
+			if (EncodeEnable) {
+				//Decide if Encode
+				if (Framenum % (encodeparam.FrameCut + 1) == 0)
+					CodeState1 = 1;
+			}
 			CalEnd1 = 0;
 			GetImage1 = 1;
 		}
@@ -326,8 +335,31 @@ void SendResToPort() {
 	}
 }
 
+
+
 int main(int argc,char* argv[])
 {
+	cmdline::parser args;
+
+	// add specified type of variable.
+	// 1st argument is long name
+	// 2nd argument is short name (no short name if '\0' specified)
+	// 3rd argument is description
+	// 4th argument is mandatory (optional. default is false)
+	// 5th argument is default value  (optional. it used when mandatory is false)
+	// 6th argument is extra constraint.
+
+	
+	//COM port params
+	args.add<UINT>("functionchoice", 'f', "", false, 0, cmdline::range(1, 4));
+	args.add<UINT>("CameraExposureTime", 'ce', "", false, 0, cmdline::range(1, 115200));
+	args.add<UINT>("printf-m", 'm', "", false, 0, cmdline::range(1, 115200));
+	args.add<UINT>("printf-w", 'w', "", false, 0, cmdline::range(1, 115200));
+
+	args.parse_check(argc, argv);
+	//to be continued
+
+
 	int ret;
 	camerainitparam.AcquisitionFrameRate = 60.0;
 	ret = CameraInit(camerainitparam);
@@ -341,7 +373,12 @@ int main(int argc,char* argv[])
 	EncoderInit(encoderparam);
 	printf("Please input the thread num:");
 	scanf("%d", &Calparam.threads);
-	ClientInit();
+	printf("Input 1 to Transport the data to server:");
+	scanf("%d", &EnableSendData);
+	if (EnableSendData) {
+		ClientInit();
+	}
+	
 	//set the calculation param
 	Calparam.maxError = 0.05;
 	Calparam.minError = 0.10;
@@ -365,20 +402,23 @@ int main(int argc,char* argv[])
 
 	thread calthread(CalImageThread);
 
-	thread Timer(TimerPerformance);
+	if (!ResVisAuto&&!ResVisManu) {
+		thread TimerThread(TimerPerformance);
+		TimerThread.join();
+	}
 
 	//thread SendClient(SendResToPort);
-#ifdef ENCODE_ENABLE
-	thread Encoder(EncodeThread);
-#endif
+	if (EncodeEnable) {
+		thread EncoderThread(EncodeThread);
+		EncoderThread.join();
+	}
+
 	acqthread.join();
 
 	calthread.join();
 
-	Timer.join();
-#ifdef ENCODE_ENABLE
-	Encoder.join();
-#endif
+	
+
 	//SendClient.join();
 	ret = CameraClean();
 	if (ret) {

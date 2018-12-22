@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClInclude Include="CameraSDK.h" />
     <ClInclude Include="ClientNet.h" />
+    <ClInclude Include="cmdline.h" />
     <ClInclude Include="FFmpegEncode.h" />
     <ClInclude Include="GaussCal.h" />
     <ClInclude Include="main.h" />

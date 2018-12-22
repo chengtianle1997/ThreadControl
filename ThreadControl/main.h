@@ -9,6 +9,7 @@
 #include <mutex>
 #include <stdlib.h>
 #include <queue>
+#include "cmdline.h"
 
 using namespace std;
 
@@ -73,6 +74,8 @@ int SendExit = 0;
 //Functional choice
 int ResVisAuto = 0;
 int ResVisManu = 0;
+int EncodeEnable = 0;
+int EnableSendData = 0;
 
 int PerforFramecnt = 0;
 

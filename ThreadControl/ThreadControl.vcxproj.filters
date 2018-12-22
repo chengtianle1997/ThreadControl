@@ -50,5 +50,8 @@
     <ClInclude Include="ClientNet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="cmdline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
