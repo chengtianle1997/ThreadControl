@@ -36,10 +36,10 @@ typedef struct
 {
 	Mat matImage; //input image
 	MPoint *point; //output result
-	double maxError; //the error to top for Gausspoint selection
-	double minError; //the error to bottom for Gausspoint selection
-	int xRange; //horizontal range base on the estimated center for Gausspoint selection
-	int threads; //threads used in OpenMP for Calculation
+	double maxError = 0.05; //the error to top for Gausspoint selection
+	double minError = 0.1; //the error to bottom for Gausspoint selection
+	int xRange = 20; //horizontal range base on the estimated center for Gausspoint selection
+	int threads = 2; //threads used in OpenMP for Calculation
 }GaussCalParam;
 
 //the param of GetGaussIdentify
@@ -47,7 +47,7 @@ typedef struct
 {
 	Mat matImage; //input image
 	MPoint *point; //input result of Cal
-	double doorin; //the gate you can choose
+	double doorin = 0.39; //the gate you can choose
 }GaussIdentifyParam;
 
 typedef struct

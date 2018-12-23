@@ -15,7 +15,10 @@ typedef struct {
 	//YUV's width and height
 	int in_w;
 	int in_h;
-
+	//BitRate
+	int bitrate = 4000000;
+	//EncoderTHread
+	int ethread = 2;
 }EncoderParam;
 
 typedef struct {
@@ -32,7 +35,9 @@ typedef struct {
 	int CameraNum = 0;
 
 	//FrameCut
-	int FrameCut;//Encode 1 frame before every FrameCut frame
+	int FrameCut = 5;//Encode 1 frame before every FrameCut frame
+
+	const char* filepath;
 
 }EncodeParam;
 

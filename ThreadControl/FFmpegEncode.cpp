@@ -35,7 +35,7 @@ int Encoder::Init(EncoderParam encoderparam)
 
 	pCodecCtx->height = in_h;
 
-	pCodecCtx->bit_rate = 4000000;
+	pCodecCtx->bit_rate = encoderparam.bitrate;
 
 	pCodecCtx->time_base.num = 1;
 
@@ -44,6 +44,8 @@ int Encoder::Init(EncoderParam encoderparam)
 	pCodecCtx->framerate.num = 25;
 
 	pCodecCtx->framerate.den = 1;
+
+	pCodecCtx->thread_count = encoderparam.ethread;
 
 	av_dict_set(&param, "preset", "slow", 0);
 
@@ -73,6 +75,8 @@ int Encoder::Init(EncoderParam encoderparam)
 		return -1;
 
 	}
+
+	pCodec->capabilities = AV_CODEC_CAP_SLICE_THREADS;
 
 	avcodec_parameters_from_context(video_st->codecpar, pCodecCtx);
 

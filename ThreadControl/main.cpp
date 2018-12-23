@@ -239,15 +239,26 @@ void AcqImageThread()
 			Buffer0Mutex = 0;
 			Buffer0Info = stOutFrame.stFrameInfo;
 			Framenum = stOutFrame.stFrameInfo.nFrameNum;
+			
+			
+			if (CalEnable) {
+				CalEnd0 = 0;
+				GetImage0 = 1;
+			}
+
 			if (EncodeEnable) {
 				//Decide if Encode
 				if (Framenum % (encodeparam.FrameCut + 1) == 0)
+				{
 					CodeState0 = 1;
+					GetImage0 = 0;
+					CalEnd0 = 1;
+				}
+					
+			
 			}
 			
-
-			CalEnd0 = 0;
-			GetImage0 = 1;
+			
 		}
 		else if (CalEnd1)
 		{
@@ -256,13 +267,22 @@ void AcqImageThread()
 			Buffer1Mutex = 0;
 			Buffer1Info = stOutFrame.stFrameInfo;
 			Framenum = stOutFrame.stFrameInfo.nFrameNum;
+			if (CalEnable) {
+				CalEnd1 = 0;
+				GetImage1 = 1;
+			}
+
 			if (EncodeEnable) {
 				//Decide if Encode
 				if (Framenum % (encodeparam.FrameCut + 1) == 0)
+				{
 					CodeState1 = 1;
+					GetImage1 = 0;
+					CalEnd1 = 1;
+				}
+
+
 			}
-			CalEnd1 = 0;
-			GetImage1 = 1;
 		}
 	}
 }
@@ -278,6 +298,7 @@ void EncodeThread()
 			encoder.Encode(encodeparam);
 			pts++;
 			CodeState0 = 0;
+			PerforFrameenc++;
 		}
 		else if (CodeState1 && !Buffer1Mutex)
 		{
@@ -286,21 +307,32 @@ void EncodeThread()
 			encoder.Encode(encodeparam);
 			pts++;
 			CodeState1 = 0;
+			PerforFrameenc++;
 		}
 	}
 	 
 }
 //TIme to Test Performance
 void TimerPerformance()
-{
+{			
 	watch.start();
 	while (1) {
 		watch.stop();
 		if (watch.elapsed() > 1000000)
 		{
-			printf("The Framerate is %d fps\n", PerforFramecnt);
+			if (CalEnable&&!EncodeEnable) {
+				printf("The Calculate Framerate is %d fps\n", PerforFramecnt);
+			}
+			else if (!CalEnable&&EncodeEnable) {
+				printf("\n\n\n\nThe Encode Framerate is %d fps\n\n\n\n", PerforFrameenc);
+			}
+			else if (CalEnable&&EncodeEnable) {
+				printf("\n\n\n\n\nThe Calculate Framerate is %d fps, \t The Encode Framerate is %d fps\n\n\n\n\n\n", PerforFramecnt,PerforFrameenc);
+			}
+			
 			watch.restart();
 			PerforFramecnt = 0;
+			PerforFrameenc = 0;
 		}
 		else {
 			watch.start();
@@ -351,17 +383,214 @@ int main(int argc,char* argv[])
 
 	
 	//COM port params
-	args.add<UINT>("functionchoice", 'f', "", false, 0, cmdline::range(1, 4));
-	args.add<UINT>("CameraExposureTime", 'ce', "", false, 0, cmdline::range(1, 115200));
-	args.add<UINT>("printf-m", 'm', "", false, 0, cmdline::range(1, 115200));
-	args.add<UINT>("printf-w", 'w', "", false, 0, cmdline::range(1, 115200));
+	//FUnctionChoice
+	args.add<UINT>("function", 'f', "FunctionChoice", false, 1, cmdline::range(1, 9));
+	//CameraParam
+	args.add<FLOAT>("exptime", 'e', "CameraExposureTime", false, 13000, cmdline::range<FLOAT>(0, 15000));
+	args.add<UINT>("expauto", '\0', "CameraExposureAuto", false, 0, cmdline::range(0, 2));
+	args.add<FLOAT>("gain", 'g', "CameraGain", false, 15, cmdline::range<FLOAT>(0, 15));
+	args.add<UINT>("gainauto", '\0', "CameraGainAuto", false, 0, cmdline::range(0, 2));
+	args.add<FLOAT>("frate", 'r', "CameraAcquisitionFrameRate", false, 60, cmdline::range<FLOAT>(0, 60));
+	args.add<UINT>("devid", 'v', "CameraDeviceId", false, 0, cmdline::range(0, 10));
+	args.add<string>("usrid", '\0', "DeviceUserId", false, "");
+	args.add<UINT>("roih", '\0', "ROIHeight", false, 2048, cmdline::range(0, 2048));
+	args.add<UINT>("roiw", '\0', "ROIWidth", false, 2592, cmdline::range(0, 2592));
+	args.add<UINT>("roix", '\0', "ROIOffsetX", false, 0, cmdline::range(0, 2592));
+	args.add<UINT>("roiy", '\0', "ROIOffsetY", false, 0, cmdline::range(0, 2048));
+	args.add<UINT>("stampsel", '\0', "FrameSpecInfoSelector", false, 0, cmdline::range(0, 8));
+	args.add<UINT>("stampon", '\0', "CameraFrameSpecInfo", false, 0, cmdline::range(0, 1));
+	//GaussCalParam
+	args.add<FLOAT>("emax", 'a', "MaxError", false, 0.05, cmdline::range<FLOAT>(0, 1));
+	args.add<FLOAT>("emin", 'i', "MinError", false, 0.10, cmdline::range<FLOAT>(0, 1));
+	args.add<UINT>("xr", 'x', "XRange", false, 20, cmdline::range(0, 100));
+	args.add<UINT>("gthread", 't', "GaussThread", false, 2, cmdline::range(1, 20));
+	args.add<FLOAT>("doorin", 'd', "DoorIn", false, 0.39, cmdline::range<FLOAT>(0, 100));
+	//EncoderParam
+	args.add<UINT>("fcut", 'c', "FrameCut", false, 5, cmdline::range(0, 60));
+	args.add<UINT>("brate", 'b', "BitRate", false, 4000000, cmdline::range(1000, 100000000));
+	args.add<UINT>("ethread", '\0', "EncoderThread", false, 1, cmdline::range(1, 20));
+	args.add<string>("filepath", 'p', "FilePath", false, "");
+
 
 	args.parse_check(argc, argv);
-	//to be continued
 
+	//FunctionChoice
+	if (args.exist("function"))
+	{
+		switch (args.get<UINT>("function"))
+		{
+		case 1:
+		{
+			CalEnable = 1;
+		}
+		break;
+		case 2:
+		{
+			CalEnable = 1;
+			ResVisManu = 1;
+		}
+		break;
+		case 3: {
+			CalEnable = 1;
+			ResVisAuto = 1;
+		}
+		break;
+		case 4:
+		{
+			CalEnable = 1;
+			EnableSendData = 1;
+		}
+		break;
+		case 5:
+		{
+			CalEnable = 0;
+			EncodeEnable = 1;
+		}
+		break;
+		case 6:
+		{
+			CalEnable = 1;
+			EncodeEnable = 1;
+		}
+		break;
+		case 7:
+		{
+			CalEnable = 1;
+			EncodeEnable = 1;
+			EnableSendData = 1;
+		}
+		break;
+		case 8:
+		{
+			;
+		}
+		break;
+		case 9:
+		{
+			;
+		}
+		break;
+		}
+	}
+	//CameraExposureTime
+	if (args.exist("exptime"))
+	{
+		camerainitparam.ExposureTime = args.get<FLOAT>("exptime");
+	}
+	//CameraExposureAuto
+	if (args.exist("expauto"))
+	{
+		camerainitparam.ExposureAuto = args.get<UINT>("expauto");
+	}
+	//CameraGain
+	if (args.exist("gain"))
+	{
+		camerainitparam.Gain = args.get<FLOAT>("gain");
+	}
+	//CameraGainAuto
+	if (args.exist("gainauto"))
+	{
+		camerainitparam.GainAuto = args.get<UINT>("gainauto");
+	}
+	//CameraAcquisitionFrameRate
+	if (args.exist("frate"))
+	{
+		camerainitparam.AcquisitionFrameRate = args.get<FLOAT>("frate");
+	}
+	//CameraDeviceId
+	if (args.exist("devid"))
+	{
+		camerainitparam.devNum = args.get<UINT>("devid");
+	}
+	//DeviceUserId
+	if (args.exist("usrid"))
+	{
+		camerainitparam.DeviceUserId = args.get<UINT>("usrid");
+	}
+	//ROIHeight
+	if (args.exist("roih"))
+	{
+		camerainitparam.ROIHeight = args.get<UINT>("roih");
+	}
+	//ROIWidth
+	if (args.exist("roiw"))
+	{
+		camerainitparam.ROIWidth = args.get<UINT>("roiw");
+	}
+	//ROIOffsetX
+	if (args.exist("roix"))
+	{
+		camerainitparam.ROIOffsetX = args.get<UINT>("roix");
+	}
+	//ROIOffsetY
+	if (args.exist("roiy"))
+	{
+		camerainitparam.ROIOffsetY = args.get<UINT>("roiy");
+	}
+	//FrameSpecInfoSelector
+	if (args.exist("stampsel"))
+	{
+		camerainitparam.FrameSpecInfoSelector = args.get<UINT>("stampsel");
+	}
+	//CameraFrameSpecInfo
+	if (args.exist("stampon"))
+	{
+		camerainitparam.FrameSpecInfo = args.get<UINT>("stampon");
+	}
+
+	//GaussCal
+	//MaxError
+	if (args.exist("emax"))
+	{
+		Calparam.maxError = args.get<FLOAT>("emax");
+	}
+	//MinError
+	if (args.exist("emin"))
+	{
+		Calparam.minError = args.get<FLOAT>("emin");
+	}
+	//XRange
+	if (args.exist("xr"))
+	{
+		Calparam.xRange = args.get<UINT>("xr");
+	}
+	//GaussThread
+	if (args.exist("gthread"))
+	{
+		Calparam.threads = args.get<UINT>("gthread");
+	}
+	//DoorIn
+	if (args.exist("doorin")) 
+	{
+		IdentifyParam.doorin = args.get<FLOAT>("doorin");
+	}
+
+	//Encoder
+	//FrameCut
+	if(args.exist("fcut"))
+	{
+		encodeparam.FrameCut = args.get<UINT>("fcut");
+	}
+	//BitRate
+	if (args.exist("brate"))
+	{
+		encoderparam.bitrate = args.get<UINT>("brate");
+	}
+	//Ethread
+	if (args.exist("ethread")) 
+	{
+		encoderparam.ethread = args.get<UINT>("ethread");
+	}
+	//FilePath
+	if (args.exist("filepath"))
+	{
+		FilePath = args.get<string>("filepath").data();
+	}
+
+	printf("Filepath :%s", FilePath);
 
 	int ret;
-	camerainitparam.AcquisitionFrameRate = 60.0;
+	//camerainitparam.AcquisitionFrameRate = 60.0;
 	ret = CameraInit(camerainitparam);
 	if (ret) {
 		printf("Camera Init failed\n");
@@ -371,26 +600,17 @@ int main(int argc,char* argv[])
 	encoderparam.in_h = camerainitparam.in_h;
 	//printf("%dx%d", encoderparam.in_w, encoderparam.in_h);
 	EncoderInit(encoderparam);
-	printf("Please input the thread num:");
-	scanf("%d", &Calparam.threads);
-	printf("Input 1 to Transport the data to server:");
-	scanf("%d", &EnableSendData);
+	//printf("Please input the thread num:");
+	//scanf("%d", &Calparam.threads);
+	//printf("Input 1 to Transport the data to server:");
+	//scanf("%d", &EnableSendData);
 	if (EnableSendData) {
 		ClientInit();
 	}
 	
-	//set the calculation param
-	Calparam.maxError = 0.05;
-	Calparam.minError = 0.10;
-	//Calparam.threads = 2;
-	Calparam.xRange = 20;
-
-	//set the identify param
-	IdentifyParam.doorin = 0.39;
+	
 
 	//Encodeparam
-	encodeparam.CameraNum = 0;
-	encodeparam.FrameCut = 5;
 	encodeparam.nHeight = ImageHeight;
 	encodeparam.nWidth = ImageWidth;
 
@@ -400,24 +620,33 @@ int main(int argc,char* argv[])
 
 	thread acqthread(AcqImageThread);
 
-	thread calthread(CalImageThread);
-
-	if (!ResVisAuto&&!ResVisManu) {
-		thread TimerThread(TimerPerformance);
-		TimerThread.join();
+	if (CalEnable&&!EncodeEnable) {
+		thread calthread(CalImageThread);
+		if (!ResVisAuto && !ResVisManu) {
+			thread TimerThread(TimerPerformance);
+			TimerThread.join();
+		}
+		calthread.join();
 	}
 
 	//thread SendClient(SendResToPort);
-	if (EncodeEnable) {
+	if (!CalEnable&&EncodeEnable) {
 		thread EncoderThread(EncodeThread);
+		thread TimerThread(TimerPerformance);
+		TimerThread.join();
 		EncoderThread.join();
 	}
 
+	if (CalEnable&&EncodeEnable) {
+		thread EncoderThread(EncodeThread);
+		thread calthread(CalImageThread);
+		thread TimerThread(TimerPerformance);
+		TimerThread.join();
+		EncoderThread.join();
+		calthread.join();
+	}
+
 	acqthread.join();
-
-	calthread.join();
-
-	
 
 	//SendClient.join();
 	ret = CameraClean();

@@ -14,10 +14,23 @@ using namespace cv;
 using namespace std;
 
 typedef struct {
-	int devNum; //device num
+	int devNum = 0; //device No.
 	int in_w; 
 	int in_h;
-	float AcquisitionFrameRate; //The value is in effect when Trigger Mode is off
+	float ExposureTime = 13000;
+	int ExposureAuto = 0;
+	float Gain = 15;
+	int GainAuto = 0;
+	float AcquisitionFrameRate = 60; //The value is in effect when Trigger Mode is off
+	int DeviceId = 0;
+	int DeviceUserId = 0;
+	int ROIHeight = 2048;
+	int ROIWidth = 2592;
+	int ROIOffsetX = 0;
+	int ROIOffsetY = 0;
+	int FrameSpecInfoSelector = 0;
+	int FrameSpecInfo = 0;
+
 }CameraInitParam;
 
 
