@@ -84,7 +84,8 @@ int PerforFramecnt = 0;
 int PerforFrameenc = 0;
 
 //The Server Information
-int ServerPort = 8888;
+int ServerPort;
+int ServerStartup;
 const char* ServerAddr = "127.0.0.1";
 
 //The Socket Package

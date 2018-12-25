@@ -22,7 +22,7 @@ typedef struct {
 	float Gain = 15;
 	int GainAuto = 0;
 	float AcquisitionFrameRate = 60; //The value is in effect when Trigger Mode is off
-	int DeviceId = 0;
+	//int DeviceId = 0; 
 	int DeviceUserId = 0;
 	int ROIHeight = 2048;
 	int ROIWidth = 2592;

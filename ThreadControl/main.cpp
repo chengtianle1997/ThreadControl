@@ -90,6 +90,8 @@ void ClientInit()
 
 	printf("The Client is connecting.....\n");
 
+	ServerPort = ServerStartup + camerainitparam.devNum;
+
 	ret = client.ClientConnect(ServerPort, ServerAddr);
 
 	if (ret)
