@@ -16,6 +16,11 @@ typedef struct {
 
 }SocketPackage;
 
+typedef struct {
+	int StartUpPort = 8001;
+	const char* ServerAddr = "127.0.0.1";
+}ClientParam;
+
 class ClientNet
 
 {

@@ -37,6 +37,8 @@ EncoderParam encoderparam;
 
 EncodeParam encodeparam;
 
+ClientParam clientparam;
+
 //State of occupation
 BOOL Buffer0Mutex = 0;
 BOOL Buffer1Mutex = 0;
@@ -84,8 +86,8 @@ int PerforFramecnt = 0;
 int PerforFrameenc = 0;
 
 //The Server Information
-int ServerPort;
-int ServerStartup;
+int Serverport;
+int ServerStartup = 8001;
 const char* ServerAddr = "127.0.0.1";
 
 //The Socket Package
@@ -95,6 +97,6 @@ const char* ServerAddr = "127.0.0.1";
 static queue<SocketPackage> SendQueue;
 
 //The Application Entrance
-int DeviceNum = 0;
+//int DeviceNum = 0;
 const char* FilePath;
 

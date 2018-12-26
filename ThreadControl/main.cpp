@@ -90,9 +90,11 @@ void ClientInit()
 
 	printf("The Client is connecting.....\n");
 
-	ServerPort = ServerStartup + camerainitparam.devNum;
+	//int Serverport;
 
-	ret = client.ClientConnect(ServerPort, ServerAddr);
+	Serverport = clientparam.StartUpPort + camerainitparam.devNum;
+
+	ret = client.ClientConnect(Serverport, clientparam.ServerAddr);
 
 	if (ret)
 	{
@@ -142,7 +144,7 @@ void CalImageThread()
 
 			//Package the Data
 			SocketPackage PackageData0;
-			PackageData0.CameraNum = DeviceNum;
+			PackageData0.CameraNum = camerainitparam.devNum;
 			PackageData0.Framecnt = Buffer0Info.nFrameNum;
 			for (int i = 0; i < ImageHeight; i++)
 				PackageData0.Res[i] = Calparam.point[i].cx;
@@ -195,7 +197,7 @@ void CalImageThread()
 
 			//Package the Data
 			SocketPackage PackageData1;
-			PackageData1.CameraNum = DeviceNum;
+			PackageData1.CameraNum = camerainitparam.devNum;
 			PackageData1.Framecnt = Buffer1Info.nFrameNum;
 			for (int i = 0; i < ImageHeight; i++)
 				PackageData1.Res[i] = Calparam.point[i].cx;
@@ -412,7 +414,9 @@ int main(int argc,char* argv[])
 	args.add<UINT>("brate", 'b', "BitRate", false, 4000000, cmdline::range(1000, 100000000));
 	args.add<UINT>("ethread", '\0', "EncoderThread", false, 1, cmdline::range(1, 20));
 	args.add<string>("filepath", 'p', "FilePath", false, "");
-
+	//ClientParam
+	args.add<UINT>("serverport", 's', "ServerPort", false, 8001, cmdline::range(0, 65535));
+	args.add<string>("serveraddr", '\0', "ServerAddress", false, "127.0.0.1");
 
 	args.parse_check(argc, argv);
 
@@ -588,8 +592,21 @@ int main(int argc,char* argv[])
 	{
 		FilePath = args.get<string>("filepath").data();
 	}
+	//printf("PATH :%s", FilePath);
+	//Client
+	//Port
+	if (args.exist("serverport"))
+	{
+		clientparam.StartUpPort = args.get<UINT>("serverport");
+		//printf("the start port is %d", ServerStartup);
+	}
+	//Addr
+	if (args.exist("serveraddr"))
+	{
+		clientparam.ServerAddr = args.get<string>("serveraddr").data();
+	}
 
-	printf("Filepath :%s", FilePath);
+	//printf("ADDR :%s", clientparam.ServerAddr);
 
 	int ret;
 	//camerainitparam.AcquisitionFrameRate = 60.0;
