@@ -33,36 +33,48 @@ int CameraInit(CameraInitParam &camerainitparam)
 	}
 
 	//Set prop
-	//Set ExposureTime 
-	ret = camera.SetExposureTime(camerainitparam.ExposureTime);
-	if (ret)
-	{
-		return ret;
-	}
 	//Set Exposureauto
 	ret = camera.SetExposureAuto(camerainitparam.ExposureAuto);
 	if (ret)
 	{
 		return ret;
 	}
+	if (!camerainitparam.ExposureAuto)
+	{
+		//Set ExposureTime 
+		ret = camera.SetExposureTime(camerainitparam.ExposureTime);
+		if (ret)
+		{
+			return ret;
+		}
+	}
+	
+	
 	//Set AcquisitionFrameRate
 	ret = camera.SetAcquisitionFrameRate(camerainitparam.AcquisitionFrameRate);
 	if (ret)
 	{
 		return ret;
 	}
-	//Set Gain
-	ret = camera.SetGain(camerainitparam.Gain);
-	if (ret)
-	{
-		return ret;
-	}
+	
+
 	//Set GainAuto[GainSelector]
 	ret = camera.SetGainAuto(camerainitparam.GainAuto);
 	if (ret)
 	{
 		return ret;
 	}
+	if (!camerainitparam.GainAuto)
+	{
+		//Set Gain
+		ret = camera.SetGain(camerainitparam.Gain);
+		if (ret)
+		{
+			return ret;
+		}
+	}
+	
+	
 	//Set Width
 	ret = camera.SetWidth(camerainitparam.ROIWidth);
 	if (ret)
@@ -460,7 +472,7 @@ int main(int argc,char* argv[])
 	//FUnctionChoice
 	args.add<UINT>("function", 'f', "FunctionChoice", false, 1, cmdline::range(1, 9));
 	//CameraParam
-	args.add<FLOAT>("exptime", 'e', "CameraExposureTime", false, 13000, cmdline::range<FLOAT>(0, 20000));
+	args.add<FLOAT>("exptime", 'e', "CameraExposureTime", false, 13000, cmdline::range<FLOAT>(0, 1000000));
 	args.add<UINT>("expauto", '\0', "CameraExposureAuto", false, 0, cmdline::range(0, 2));
 	args.add<FLOAT>("gain", 'g', "CameraGain", false, 15, cmdline::range<FLOAT>(0, 15));
 	args.add<UINT>("gainauto", '\0', "CameraGainAuto", false, 0, cmdline::range(0, 2));

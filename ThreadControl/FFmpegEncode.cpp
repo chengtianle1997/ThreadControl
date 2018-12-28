@@ -117,8 +117,8 @@ int Encoder::Encode(EncodeParam encodeparam)
 	out_file = (char*)malloc(40);
 
 	//Êä³öÎÄ¼þ
-	sprintf(out_file, "%s\\Camera%d_%d.jpeg", encodeparam.filepath, encodeparam.CameraNum, encodeparam.pts);
-	//sprintf(out_file, "Camera%d_%d.jpeg", encodeparam.CameraNum, encodeparam.pts);
+	//sprintf(out_file, "%s\\Camera%d_%d.jpeg", encodeparam.filepath, encodeparam.CameraNum, encodeparam.pts);
+	sprintf(out_file, "Camera%d_%d.jpeg", encodeparam.CameraNum, encodeparam.pts);
 	//Output some information
 	av_dump_format(pFormatCtx, 0, out_file, 1);
 
