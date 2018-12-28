@@ -15,29 +15,91 @@ int CameraInit(CameraInitParam &camerainitparam)
 	{
 		return ret;
 	}
-	printf("Please choose a camera:");
-	scanf("%d", &camerainitparam.devNum);
+	//printf("Please choose a camera:");
+	//scanf("%d", &camerainitparam.devNum);
 	ret = camera.OpenCamera(camerainitparam);
 	if (ret)
 	{
 		return ret;
 	}
+
+	if (!camerainitparam.ROIWidth)
+	{
+		camerainitparam.ROIWidth = camerainitparam.in_w;
+	}
+	if (!camerainitparam.ROIHeight)
+	{
+		camerainitparam.ROIHeight = camerainitparam.in_h;
+	}
+
 	//Set prop
-	ret = camera.SetGain(15.0);
+	//Set ExposureTime 
+	ret = camera.SetExposureTime(camerainitparam.ExposureTime);
 	if (ret)
 	{
 		return ret;
 	}
-	ret = camera.SetExposureTime(16000);
+	//Set Exposureauto
+	ret = camera.SetExposureAuto(camerainitparam.ExposureAuto);
 	if (ret)
 	{
 		return ret;
 	}
-	ret = camera.SetAcquisitionFrameRate(60.0);
+	//Set AcquisitionFrameRate
+	ret = camera.SetAcquisitionFrameRate(camerainitparam.AcquisitionFrameRate);
 	if (ret)
 	{
 		return ret;
 	}
+	//Set Gain
+	ret = camera.SetGain(camerainitparam.Gain);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set GainAuto[GainSelector]
+	ret = camera.SetGainAuto(camerainitparam.GainAuto);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set Width
+	ret = camera.SetWidth(camerainitparam.ROIWidth);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set Height
+	ret = camera.SetHeight(camerainitparam.ROIHeight);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set OffsetX
+	ret = camera.SetOffsetX(camerainitparam.ROIOffsetX);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set OffsetY
+	ret = camera.SetOffsetY(camerainitparam.ROIOffsetY);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set FrameSpecInfoSelector
+	ret = camera.SetFrameSpecInfoSelector(camerainitparam.FrameSpecInfoSelector);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set FrameSpecInfo
+	ret = camera.SetFrameSpecInfo(camerainitparam.FrameSpecInfo);
+	if (ret)
+	{
+		return ret;
+	}
+
 	//Start Grabing
 	ret = camera.StartGrabbing();
 	if (ret)
@@ -105,6 +167,14 @@ void ClientInit()
 void ClientClean() {
 	printf("Closing Socket......\n");
 	client.ClientClose();
+}
+
+int CreateFolder(const char* filepath, char* finalpath, int Devnum)
+{
+	int nRet;
+	nRet = filemanager.CreateFolder(filepath, finalpath, Devnum);
+	
+	return nRet;
 }
 
 void CalImageThread()
@@ -468,7 +538,8 @@ int main(int argc,char* argv[])
 		break;
 		case 8:
 		{
-			;
+			camera.GetDevList();
+			return 0;
 		}
 		break;
 		case 9:
@@ -618,6 +689,17 @@ int main(int argc,char* argv[])
 	encoderparam.in_w = camerainitparam.in_w;
 	encoderparam.in_h = camerainitparam.in_h;
 	//printf("%dx%d", encoderparam.in_w, encoderparam.in_h);
+
+	FinalPath = (char*)malloc(500);
+
+	ret = CreateFolder(FilePath, FinalPath, camerainitparam.devNum);
+	if (!ret)
+	{
+		printf("Create Folder Failed\n");
+	}
+
+	encodeparam.filepath = FinalPath;
+
 	EncoderInit(encoderparam);
 	//printf("Please input the thread num:");
 	//scanf("%d", &Calparam.threads);
@@ -675,6 +757,8 @@ int main(int argc,char* argv[])
 	CameraClean();
 	EncoderClean();
 	ClientClean();
+
+	free(FinalPath);
 
 	return 0;
 }

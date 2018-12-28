@@ -175,7 +175,87 @@ int Camera::SetDeviceUserID(const char* newDeviceUserID)
 	return nRet;
 }
 
-//Set
+//Set RegionSelector 
+int Camera::SetRegionSelector(int newRegionSelector)
+{
+	nRet = MV_CC_SetEnumValue(handle, "RegionSelector ", newRegionSelector);
+	if (MV_OK != nRet)
+	{
+		printf("Set RegionSelector fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
+	return nRet;
+}
+
+//Set Width
+int Camera::SetWidth(int newWidth)
+{
+	nRet = MV_CC_SetWidth(handle, newWidth);
+	if (MV_OK != nRet)
+	{
+		printf("Set ROIWidth fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
+	return nRet;
+}
+
+//Set Height
+int Camera::SetHeight(int newHeight)
+{
+	nRet = MV_CC_SetHeight(handle, newHeight);
+	if (MV_OK != nRet)
+	{
+		printf("Set ROIHeight fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
+	return nRet;
+}
+
+//Set OffsetX
+int Camera::SetOffsetX(int newOffsetX)
+{
+	nRet = MV_CC_SetIntValue(handle, "OffsetX", newOffsetX);
+	if (MV_OK != nRet)
+	{
+		printf("Set ROIOffsetX fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
+	return nRet;
+}
+
+//Set OffsetY
+int Camera::SetOffsetY(int newOffsetY)
+{
+	nRet = MV_CC_SetIntValue(handle, "OffsetY", newOffsetY);
+	if (MV_OK != nRet)
+	{
+		printf("Set ROIOffsetY fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
+	return nRet;
+}
+
+//Set FrameSpecInfoSelector
+int Camera::SetFrameSpecInfoSelector(int newFrameSpecInfoSelector)
+{
+	nRet = MV_CC_SetEnumValue(handle, "FrameSpecInfoSelector", newFrameSpecInfoSelector);
+	if (MV_OK != nRet)
+	{
+		printf("Set FrameSpecInfoSelector fail! nRet [0x%x]\n", nRet);
+	}
+	return nRet;
+}
+
+//Set FrameSpecInfo
+int Camera::SetFrameSpecInfo(int newFrameSpecInfo)
+{
+	nRet = MV_CC_SetBoolValue(handle, "FrameSpecInfo", newFrameSpecInfo);
+	if (MV_OK != nRet)
+	{
+		printf("SetFrameSpecInfo fail! nRet [0x%x]\n", nRet);
+	}
+	return nRet;
+}
 
 //Start Grabbing
 int Camera::StartGrabbing() 

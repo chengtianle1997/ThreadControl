@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <queue>
 #include "cmdline.h"
+#include "FileManager.h"
 
 using namespace std;
 
@@ -24,6 +25,8 @@ Encoder encoder;
 GaussCal Gausscal;
 
 ClientNet client;
+
+FileManager filemanager;
 
 mutex m;
 
@@ -98,5 +101,6 @@ static queue<SocketPackage> SendQueue;
 
 //The Application Entrance
 //int DeviceNum = 0;
-const char* FilePath;
+const char* FilePath = "C:\\EncodeResult";
+char* FinalPath;
 

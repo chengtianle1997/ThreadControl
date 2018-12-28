@@ -24,8 +24,8 @@ typedef struct {
 	float AcquisitionFrameRate = 60; //The value is in effect when Trigger Mode is off
 	//int DeviceId = 0; 
 	int DeviceUserId = 0;
-	int ROIHeight = 2048;
-	int ROIWidth = 2592;
+	int ROIHeight = 0;
+	int ROIWidth = 0;
 	int ROIOffsetX = 0;
 	int ROIOffsetY = 0;
 	int FrameSpecInfoSelector = 0;
@@ -62,6 +62,27 @@ public:
 
 	//Set DeviceUserID
 	int SetDeviceUserID(const char* newDeviceUserID);
+
+	//Set RegionSelector 
+	int SetRegionSelector(int newRegionSelector);
+
+	//Set Width
+	int SetWidth(int newWidth);
+
+	//Set Height
+	int SetHeight(int newHeight);
+
+	//Set OffsetX
+	int SetOffsetX(int newOffsetX);
+
+	//Set OffsetY
+	int SetOffsetY(int newOffsetY);
+
+	//Set FrameSpecInfoSelector
+	int SetFrameSpecInfoSelector(int newFrameSpecInfoSelector);
+
+	//Set FrameSpecInfo
+	int SetFrameSpecInfo(int newFrameSpecInfo);
 
 	//Get Image
 	int GetImage(MV_FRAME_OUT &stOutFrame);
