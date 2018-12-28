@@ -48,11 +48,20 @@ public:
 	//Set ExposureTime 
 	int SetExposureTime(float newExposureTime);
 
+	//Set Exposureauto
+	int SetExposureAuto(int newExposureAuto);
+
 	//Set AcquisitionFrameRate
 	int SetAcquisitionFrameRate(float newAcquisitionFrameRate);
 
 	//Set Gain
 	int SetGain(float newGain);
+
+	//Set GainAuto[GainSelector]
+	int SetGainAuto(int newGainAuto);
+
+	//Set DeviceUserID
+	int SetDeviceUserID(const char* newDeviceUserID);
 
 	//Get Image
 	int GetImage(MV_FRAME_OUT &stOutFrame);

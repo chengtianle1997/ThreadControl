@@ -28,7 +28,7 @@ int CameraInit(CameraInitParam &camerainitparam)
 	{
 		return ret;
 	}
-	ret = camera.SetExposureTime(13000);
+	ret = camera.SetExposureTime(16000);
 	if (ret)
 	{
 		return ret;
@@ -390,7 +390,7 @@ int main(int argc,char* argv[])
 	//FUnctionChoice
 	args.add<UINT>("function", 'f', "FunctionChoice", false, 1, cmdline::range(1, 9));
 	//CameraParam
-	args.add<FLOAT>("exptime", 'e', "CameraExposureTime", false, 13000, cmdline::range<FLOAT>(0, 15000));
+	args.add<FLOAT>("exptime", 'e', "CameraExposureTime", false, 13000, cmdline::range<FLOAT>(0, 20000));
 	args.add<UINT>("expauto", '\0', "CameraExposureAuto", false, 0, cmdline::range(0, 2));
 	args.add<FLOAT>("gain", 'g', "CameraGain", false, 15, cmdline::range<FLOAT>(0, 15));
 	args.add<UINT>("gainauto", '\0', "CameraGainAuto", false, 0, cmdline::range(0, 2));
@@ -404,11 +404,11 @@ int main(int argc,char* argv[])
 	args.add<UINT>("stampsel", '\0', "FrameSpecInfoSelector", false, 0, cmdline::range(0, 8));
 	args.add<UINT>("stampon", '\0', "CameraFrameSpecInfo", false, 0, cmdline::range(0, 1));
 	//GaussCalParam
-	args.add<FLOAT>("emax", 'a', "MaxError", false, 0.05, cmdline::range<FLOAT>(0, 1));
-	args.add<FLOAT>("emin", 'i', "MinError", false, 0.10, cmdline::range<FLOAT>(0, 1));
-	args.add<UINT>("xr", 'x', "XRange", false, 20, cmdline::range(0, 100));
+	args.add<FLOAT>("emax", 'a', "MaxError", false, 0.13, cmdline::range<FLOAT>(0, 1));
+	args.add<FLOAT>("emin", 'i', "MinError", false, 0.13, cmdline::range<FLOAT>(0, 1));
+	args.add<UINT>("xr", 'x', "XRange", false, 15, cmdline::range(0, 100));
 	args.add<UINT>("gthread", 't', "GaussThread", false, 2, cmdline::range(1, 20));
-	args.add<FLOAT>("doorin", 'd', "DoorIn", false, 0.39, cmdline::range<FLOAT>(0, 100));
+	args.add<FLOAT>("doorin", 'd', "DoorIn", false, 0.50, cmdline::range<FLOAT>(0, 100));
 	//EncoderParam
 	args.add<UINT>("fcut", 'c', "FrameCut", false, 5, cmdline::range(0, 60));
 	args.add<UINT>("brate", 'b', "BitRate", false, 4000000, cmdline::range(1000, 100000000));

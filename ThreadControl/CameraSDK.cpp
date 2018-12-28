@@ -114,6 +114,19 @@ int Camera::SetExposureTime(float newExposureTime)
 	return nRet;
 }
 
+//Set Exposureauto
+int Camera::SetExposureAuto(int newExposureAuto)
+{
+	nRet = MV_CC_SetEnumValue(handle, "ExposureAuto", newExposureAuto);
+	if (MV_OK != nRet)
+	{
+		printf("Set ExposureAuto fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
+	return nRet;
+
+}
+
 //Set AcquisitionFrameRate
 int Camera::SetAcquisitionFrameRate(float newAcquisitionFrameRate) 
 {
@@ -137,6 +150,32 @@ int Camera::SetGain(float newGain)
 	}
 	return nRet;
 }
+
+//Set GainAuto[GainSelector]
+int Camera::SetGainAuto(int newGainAuto)
+{
+	nRet = MV_CC_SetEnumValue(handle, "GainAuto", newGainAuto);
+	if (MV_OK != nRet)
+	{
+		printf("Set GainAuto fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
+	return nRet;
+}
+
+//Set DeviceUserID
+int Camera::SetDeviceUserID(const char* newDeviceUserID)
+{
+	nRet = MV_CC_SetDeviceUserID(handle, newDeviceUserID);
+	if (MV_OK != nRet)
+	{
+		printf("Set DeviceUserID fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
+	return nRet;
+}
+
+//Set
 
 //Start Grabbing
 int Camera::StartGrabbing() 
