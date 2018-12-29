@@ -9,16 +9,27 @@ extern "C"
 
 #include "libavformat/avio.h"
 
+#include "libavutil/opt.h"
+
+#include "libavutil/imgutils.h"
+
 };
 
 typedef struct {
 	//YUV's width and height
 	int in_w;
 	int in_h;
+
 	//BitRate
 	int bitrate = 4000000;
+
 	//EncoderTHread
 	int ethread = 2;
+
+	//CameraNum
+	int CameraNum = 0;
+	const char* filepath;
+
 }EncoderParam;
 
 typedef struct {
@@ -44,16 +55,21 @@ typedef struct {
 class Encoder {
 public:
 	//Encode Initiate
-	int Init(EncoderParam encoderparam);
+	int InitJPEG(EncoderParam encoderparam);
+	int InitMJPEG(EncoderParam encoderparam);
 
 	//Encode Image
-	int Encode(EncodeParam encodeparam);
+	int EncodeJPEG(EncodeParam encodeparam);
+
+	//Encode Video
+	int EncodeMJPEG(EncodeParam encodeparam);
 
 	//Clean Context
-	int Clean();
+	int JPEGClean();
+	int MJPEGClean();
 
 	//Flush Encoder
-	int Flush(); //to be continued
+	int MJPEGFlush(); //to be continued
 
 private:
 	AVFormatContext* pFormatCtx;
@@ -88,11 +104,13 @@ private:
 
 	int ret = 0;
 
-	//int i = 0;
+	int i = 0;
 
 	//FILE *in_file = NULL;                            //YUV source
 
 	int in_w, in_h;       //YUV's width and height
 
 	//int CameraNum = 0;
+
+	FILE *fp_out = NULL;
 };

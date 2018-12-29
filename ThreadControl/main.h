@@ -104,3 +104,5 @@ static queue<SocketPackage> SendQueue;
 const char* FilePath = "C:\\EncodeResult";
 char* FinalPath;
 
+int Format = 0;
+

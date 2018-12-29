@@ -148,14 +148,29 @@ int CameraClean()
 }
 
 
-void EncoderInit(EncoderParam encoderparam)
+void EncoderJPEGInit(EncoderParam encoderparam)
 {
-	encoder.Init(encoderparam);
+	encoder.InitJPEG(encoderparam);
 }
 
-void EncoderClean()
+void EncoderJPEGClean()
 {
-	encoder.Clean();
+	encoder.JPEGClean();
+}
+
+void EncoderMJPEGInit(EncoderParam encoderparam)
+{
+	encoder.InitMJPEG(encoderparam);
+}
+
+void EncoderMJPEGClean()
+{
+	encoder.MJPEGClean();
+}
+
+void EncoderFlushMJPEG()
+{
+	encoder.MJPEGFlush();
 }
 
 void ClientInit()
@@ -373,7 +388,7 @@ void AcqImageThread()
 	}
 }
 
-void EncodeThread()
+void EncodeJPEGThread()
 {
 	int pts = 0; //inner frame counter 
 	while (!EncodeExit) {
@@ -381,7 +396,7 @@ void EncodeThread()
 		{
 			encodeparam.pBufAddr = Buffer0;
 			encodeparam.pts = pts;
-			encoder.Encode(encodeparam);
+			encoder.EncodeJPEG(encodeparam);
 			pts++;
 			CodeState0 = 0;
 			PerforFrameenc++;
@@ -390,13 +405,38 @@ void EncodeThread()
 		{
 			encodeparam.pBufAddr = Buffer1;
 			encodeparam.pts = pts;
-			encoder.Encode(encodeparam);
+			encoder.EncodeJPEG(encodeparam);
 			pts++;
 			CodeState1 = 0;
 			PerforFrameenc++;
 		}
 	}
 	 
+}
+void EncodeMJPEGThread()
+{
+	int pts = 0;
+	while (!EncodeExit)
+	{
+		if (CodeState0 && !Buffer0Mutex)
+		{
+			encodeparam.pBufAddr = Buffer0;
+			encodeparam.pts = pts;
+			encoder.EncodeMJPEG(encodeparam);
+			pts++;
+			CodeState0 = 0;
+			PerforFrameenc++;
+		}
+		else if (CodeState1 && !Buffer1Mutex)
+		{
+			encodeparam.pBufAddr = Buffer1;
+			encodeparam.pts = pts;
+			encoder.EncodeMJPEG(encodeparam);
+			pts++;
+			CodeState1 = 0;
+			PerforFrameenc++;
+		}
+	}
 }
 //TIme to Test Performance
 void TimerPerformance()
@@ -496,6 +536,7 @@ int main(int argc,char* argv[])
 	args.add<UINT>("brate", 'b', "BitRate", false, 4000000, cmdline::range(1000, 100000000));
 	args.add<UINT>("ethread", '\0', "EncoderThread", false, 1, cmdline::range(1, 20));
 	args.add<string>("filepath", 'p', "FilePath", false, "");
+	args.add<UINT>("format", 'o', "OutputFormat", false, 1, cmdline::range(0, 1));
 	//ClientParam
 	args.add<UINT>("serverport", 's', "ServerPort", false, 8001, cmdline::range(0, 65535));
 	args.add<string>("serveraddr", '\0', "ServerAddress", false, "127.0.0.1");
@@ -676,6 +717,10 @@ int main(int argc,char* argv[])
 		FilePath = args.get<string>("filepath").data();
 	}
 	//printf("PATH :%s", FilePath);
+	if (args.exist("format"))
+	{
+		Format = args.get<UINT>("format");
+	}
 	//Client
 	//Port
 	if (args.exist("serverport"))
@@ -709,10 +754,21 @@ int main(int argc,char* argv[])
 	{
 		printf("Create Folder Failed\n");
 	}
-
+	encoderparam.filepath = FinalPath;
 	encodeparam.filepath = FinalPath;
 
-	EncoderInit(encoderparam);
+	encoderparam.CameraNum = camerainitparam.devNum;
+	encodeparam.CameraNum = camerainitparam.devNum;
+
+	if (Format == 0)
+	{
+		EncoderMJPEGInit(encoderparam);
+	}
+	else if (Format == 1)
+	{
+		EncoderJPEGInit(encoderparam);
+	}
+	
 	//printf("Please input the thread num:");
 	//scanf("%d", &Calparam.threads);
 	//printf("Input 1 to Transport the data to server:");
@@ -744,19 +800,43 @@ int main(int argc,char* argv[])
 
 	//thread SendClient(SendResToPort);
 	if (!CalEnable&&EncodeEnable) {
-		thread EncoderThread(EncodeThread);
-		thread TimerThread(TimerPerformance);
-		TimerThread.join();
-		EncoderThread.join();
+		if (Format == 0)
+		{
+			thread EncoderThread(EncodeMJPEGThread);
+			thread TimerThread(TimerPerformance);
+			TimerThread.join();
+			EncoderThread.join();
+		}
+		else if (Format == 1)
+		{
+			thread EncoderThread(EncodeJPEGThread);
+			thread TimerThread(TimerPerformance);
+			TimerThread.join();
+			EncoderThread.join();
+		}
+		
 	}
 
 	if (CalEnable&&EncodeEnable) {
-		thread EncoderThread(EncodeThread);
-		thread calthread(CalImageThread);
-		thread TimerThread(TimerPerformance);
-		TimerThread.join();
-		EncoderThread.join();
-		calthread.join();
+		if (Format == 0)
+		{
+			thread EncoderThread(EncodeMJPEGThread);
+			thread calthread(CalImageThread);
+			thread TimerThread(TimerPerformance);
+			TimerThread.join();
+			EncoderThread.join();
+			calthread.join();
+		}
+		else if (Format == 1)
+		{
+			thread EncoderThread(EncodeJPEGThread);
+			thread calthread(CalImageThread);
+			thread TimerThread(TimerPerformance);
+			TimerThread.join();
+			EncoderThread.join();
+			calthread.join();
+		}
+		
 	}
 
 	acqthread.join();
@@ -767,7 +847,15 @@ int main(int argc,char* argv[])
 		printf("Camera Clean failed\n");
 	}
 	CameraClean();
-	EncoderClean();
+	if (Format == 0)
+	{
+		EncoderMJPEGClean();
+	}
+	else if (Format == 1)
+	{
+		EncoderJPEGClean();
+	}
+	
 	ClientClean();
 
 	free(FinalPath);
