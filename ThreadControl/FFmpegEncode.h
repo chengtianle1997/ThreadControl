@@ -21,10 +21,11 @@ typedef struct {
 	int in_h;
 
 	//BitRate
-	int bitrate = 4000000;
+	int bitrate = 200000000;
+	int bitrate_tolerance = 8000000;
 
 	//EncoderTHread
-	int ethread = 2;
+	int ethread = 1;
 
 	//CameraNum
 	int CameraNum = 0;
@@ -93,6 +94,10 @@ private:
 	AVCodecID codec_id = AV_CODEC_ID_MJPEG;
 
 	AVDictionary *param = 0;
+
+	const AVCodecHWConfig *hwconfig;
+
+	//const AVCodecHWConfigInternal **hw_configs;
 
 	int y_size;
 

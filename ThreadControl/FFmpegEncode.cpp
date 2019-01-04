@@ -37,6 +37,8 @@ int Encoder::InitJPEG(EncoderParam encoderparam)
 
 	pCodecCtx->bit_rate = encoderparam.bitrate;
 
+	pCodecCtx->bit_rate_tolerance = encoderparam.bitrate_tolerance;
+
 	pCodecCtx->time_base.num = 1;
 
 	pCodecCtx->time_base.den = 25;
@@ -119,6 +121,8 @@ int Encoder::InitMJPEG(EncoderParam encoderparam)
 
 	av_register_all();
 
+	
+
 	pCodec = avcodec_find_encoder(codec_id);
 	if (!pCodec) {
 		printf("Codec not found\n");
@@ -131,21 +135,35 @@ int Encoder::InitMJPEG(EncoderParam encoderparam)
 		return -1;
 	}
 
+	/*hwconfig = avcodec_get_hw_config(pCodec, 0);
+	if (!hwconfig) {
+		printf("Could not get hardware config\n");
+		return -1;
+	}*/
+
+	//hw_configs[0] = hwconfig;
+
+
+
 	pCodecCtx->codec_id = AV_CODEC_ID_MJPEG;
 	pCodecCtx->codec_type = AVMEDIA_TYPE_VIDEO;
 	pCodecCtx->bit_rate = encoderparam.bitrate;
+	pCodecCtx->bit_rate_tolerance = encoderparam.bitrate_tolerance;
 	pCodecCtx->width = encoderparam.in_w;
 	pCodecCtx->height = encoderparam.in_h;
 	pCodecCtx->time_base.num = 1;
 	pCodecCtx->time_base.den = 25;
+
 	pCodecCtx->gop_size = 10;
 	pCodecCtx->pix_fmt = AV_PIX_FMT_YUVJ444P;
 	pCodecCtx->thread_count = encoderparam.ethread;
+	//pCodecCtx->slices = encoderparam.ethread;
 	pCodecCtx->framerate.num = 25;
 	pCodecCtx->framerate.den = 1;
 	
 
 	pCodec->capabilities = AV_CODEC_CAP_SLICE_THREADS;
+	//pCodec->hw_configs = hw_configs;
 
 	if (avcodec_open2(pCodecCtx, pCodec, NULL) < 0) {
 		printf("Could not open codec\n");

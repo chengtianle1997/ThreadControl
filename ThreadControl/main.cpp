@@ -516,7 +516,7 @@ int main(int argc,char* argv[])
 	args.add<UINT>("expauto", '\0', "CameraExposureAuto", false, 0, cmdline::range(0, 2));
 	args.add<FLOAT>("gain", 'g', "CameraGain", false, 15, cmdline::range<FLOAT>(0, 15));
 	args.add<UINT>("gainauto", '\0', "CameraGainAuto", false, 0, cmdline::range(0, 2));
-	args.add<FLOAT>("frate", 'r', "CameraAcquisitionFrameRate", false, 60, cmdline::range<FLOAT>(0, 60));
+	args.add<FLOAT>("frate", 'r', "CameraAcquisitionFrameRate", false, 60, cmdline::range<FLOAT>(0, 200));
 	args.add<UINT>("devid", 'v', "CameraDeviceId", false, 0, cmdline::range(0, 10));
 	args.add<string>("usrid", '\0', "DeviceUserId", false, "");
 	args.add<UINT>("roih", '\0', "ROIHeight", false, 2048, cmdline::range(0, 2048));
@@ -533,7 +533,8 @@ int main(int argc,char* argv[])
 	args.add<FLOAT>("doorin", 'd', "DoorIn", false, 0.50, cmdline::range<FLOAT>(0, 100));
 	//EncoderParam
 	args.add<UINT>("fcut", 'c', "FrameCut", false, 5, cmdline::range(0, 60));
-	args.add<UINT>("brate", 'b', "BitRate", false, 4000000, cmdline::range(1000, 100000000));
+	args.add<UINT>("brate", 'b', "BitRate", false, 200000000, cmdline::range(1000, 1000000000));
+	args.add<UINT>("btol", 'l', "BitRateTolerance", false, 8000000, cmdline::range(4000000, 100000000));
 	args.add<UINT>("ethread", '\0', "EncoderThread", false, 1, cmdline::range(1, 20));
 	args.add<string>("filepath", 'p', "FilePath", false, "");
 	args.add<UINT>("format", 'o', "OutputFormat", false, 1, cmdline::range(0, 1));
@@ -706,6 +707,11 @@ int main(int argc,char* argv[])
 	{
 		encoderparam.bitrate = args.get<UINT>("brate");
 	}
+	if (args.exist("btol"))
+	{
+		encoderparam.bitrate_tolerance = args.get<UINT>("btol");
+	}
+
 	//Ethread
 	if (args.exist("ethread")) 
 	{

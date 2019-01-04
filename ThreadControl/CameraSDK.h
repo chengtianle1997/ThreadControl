@@ -17,7 +17,7 @@ typedef struct {
 	int devNum = 0; //device No.
 	int in_w; 
 	int in_h;
-	float ExposureTime = 13000;
+	float ExposureTime = 5000;
 	int ExposureAuto = 0;
 	float Gain = 15;
 	int GainAuto = 0;
