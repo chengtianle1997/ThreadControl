@@ -118,6 +118,42 @@ int CameraInit(CameraInitParam &camerainitparam)
 	{
 		return ret;
 	}
+	//Set TriggerSelector
+	ret = camera.SetTriggerSelector(camerainitparam.TriggerSelector);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set TriggerMode
+	ret = camera.SetTriggerMode(camerainitparam.TriggerMode);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set TriggerSource
+	ret = camera.SetTriggerSource(camerainitparam.TriggerSource);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set TriggerActivation
+	ret = camera.SetTriggerActivation(camerainitparam.TriggerActivation);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set TriggerDelay
+	ret = camera.SetTriggerDelay(camerainitparam.TriggerDelay);
+	if (ret)
+	{
+		return ret;
+	}
+	//Set TriggerCacheEnable
+	ret = camera.SetTriggerCacheEnable(camerainitparam.TriggerCacheEnable);
+	if (ret)
+	{
+		return ret;
+	}
 
 	//Start Grabing
 	ret = camera.StartGrabbing();
@@ -547,6 +583,12 @@ int main(int argc,char* argv[])
 	args.add<UINT>("roiy", '\0', "ROIOffsetY", false, 0, cmdline::range(0, 2048));
 	args.add<UINT>("stampsel", '\0', "FrameSpecInfoSelector", false, 0, cmdline::range(0, 8));
 	args.add<UINT>("stampon", '\0', "CameraFrameSpecInfo", false, 0, cmdline::range(0, 1));
+	args.add<UINT>("tsele", '\0', "TriggerSelector", false, 6, cmdline::range(0, 12));
+	args.add<UINT>("tmode", '\0', "TriggerMode", false, 0, cmdline::range(0, 1));
+	args.add<UINT>("tsrc", '\0', "TriggerSource", false, 0, cmdline::range(0, 8));
+	args.add<UINT>("tacti", '\0', "TriggerActivation", false, 0, cmdline::range(0, 3));
+	args.add<FLOAT>("tdelay", '\0', "TriggerDelay", false, 0, cmdline::range<FLOAT>(0, 1000000));
+	args.add<UINT>("tcaen", '\0', "TriggerCacheEnable", false, 0, cmdline::range(0, 1));
 	//GaussCalParam
 	args.add<FLOAT>("emax", 'a', "MaxError", false, 0.13, cmdline::range<FLOAT>(0, 1));
 	args.add<FLOAT>("emin", 'i', "MinError", false, 0.13, cmdline::range<FLOAT>(0, 1));
@@ -695,6 +737,36 @@ int main(int argc,char* argv[])
 	if (args.exist("stampon"))
 	{
 		camerainitparam.FrameSpecInfo = args.get<UINT>("stampon");
+	}
+	//CameraTriggerSelector
+	if (args.exist("tsele"))
+	{
+		camerainitparam.TriggerSelector = args.get<UINT>("tsele");
+	}
+	//CameraTriggerMode
+	if (args.exist("tmode"))
+	{
+		camerainitparam.TriggerMode = args.get<UINT>("tmode");
+	}
+	//CameraTriggerSource
+	if (args.exist("tsrc"))
+	{
+		camerainitparam.TriggerSource = args.get<UINT>("tsrc");
+	}
+	//CameraTriggerActivation
+	if (args.exist("tacti"))
+	{
+		camerainitparam.TriggerActivation = args.get<UINT>("tacti");
+	}
+	//CameraTriggerDelay
+	if (args.exist("tdelay"))
+	{
+		camerainitparam.TriggerDelay = args.get<FLOAT>("tdelay");
+	}
+	//CameraTriggerCacheEnable
+	if (args.exist("tcaen"))
+	{
+		camerainitparam.TriggerCacheEnable = args.get<UINT>("tcaen");
 	}
 
 	//GaussCal

@@ -30,12 +30,12 @@ typedef struct {
 	int ROIOffsetY = 0;
 	int FrameSpecInfoSelector = 0;
 	int FrameSpecInfo = 0;
-	int TriggerSelector;
-	int TriggerMode;
-	int TriggerSource;
-	int TriggerActivation;
-	float TriggerDelay;
-	int TriggerCacheEnable;
+	int TriggerSelector = 6; //The only Select is FrameBurstStart
+	int TriggerMode = 0; // 0 for Software Trigger and 1 for Hardware Triger
+	int TriggerSource = 0;
+	int TriggerActivation = 0;
+	float TriggerDelay = 0;
+	int TriggerCacheEnable = 0;
 	MV_CC_DEVICE_INFO DevInfo;
 
 }CameraInitParam;

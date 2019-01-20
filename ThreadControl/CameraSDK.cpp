@@ -260,7 +260,7 @@ int Camera::SetFrameSpecInfo(int newFrameSpecInfo)
 //Set TriggerSelector
 int Camera::SetTriggerSelector(int newTriggerSelector)
 {
-	nRet = MV_CC_SetEnumValue(handle, "FrameSpecInfoSelector", newTriggerSelector);
+	nRet = MV_CC_SetEnumValue(handle, "TriggerSelector", newTriggerSelector);
 	if (MV_OK != nRet)
 	{
 		printf("Set TriggerSelector fail! nRet [0x%x]\n", nRet);
@@ -271,7 +271,7 @@ int Camera::SetTriggerSelector(int newTriggerSelector)
 //Set TriggerMode
 int Camera::SetTriggerMode(int newTriggerMode)
 {
-	nRet = MV_CC_SetEnumValue(handle, "FrameSpecInfoSelector", newTriggerMode);
+	nRet = MV_CC_SetEnumValue(handle, "TriggerMode", newTriggerMode);
 	if (MV_OK != nRet)
 	{
 		printf("Set TriggerMode fail! nRet [0x%x]\n", nRet);
@@ -282,7 +282,7 @@ int Camera::SetTriggerMode(int newTriggerMode)
 //Set TriggerSource
 int Camera::SetTriggerSource(int newTriggerSource)
 {
-	nRet = MV_CC_SetEnumValue(handle, "FrameSpecInfoSelector", newTriggerSource);
+	nRet = MV_CC_SetEnumValue(handle, "TriggerSource", newTriggerSource);
 	if (MV_OK != nRet)
 	{
 		printf("Set TriggerSource fail! nRet [0x%x]\n", nRet);
@@ -293,7 +293,7 @@ int Camera::SetTriggerSource(int newTriggerSource)
 //Set TriggerActivation
 int Camera::SetTriggerActivation(int newTriggerActivation)
 {
-	nRet = MV_CC_SetEnumValue(handle, "FrameSpecInfoSelector", newTriggerActivation);
+	nRet = MV_CC_SetEnumValue(handle, "TriggerActivation", newTriggerActivation);
 	if (MV_OK != nRet)
 	{
 		printf("Set TriggerActivation fail! nRet [0x%x]\n", nRet);
@@ -303,7 +303,7 @@ int Camera::SetTriggerActivation(int newTriggerActivation)
 
 //Set TriggerDelay
 int Camera::SetTriggerDelay(float newTriggerDelay) {
-	nRet = MV_CC_SetFloatValue(handle, "FrameSpecInfoSelector", newTriggerDelay);
+	nRet = MV_CC_SetFloatValue(handle, "TriggerDelay", newTriggerDelay);
 	if (MV_OK != nRet)
 	{
 		printf("Set TriggerDelay fail! nRet [0x%x]\n", nRet);
@@ -314,7 +314,7 @@ int Camera::SetTriggerDelay(float newTriggerDelay) {
 //Set TriggerCacheEnable
 int Camera::SetTriggerCacheEnable(int newTriggerCacheEnable)
 {
-	nRet = MV_CC_SetBoolValue(handle, "FrameSpecInfoSelector", newTriggerCacheEnable);
+	nRet = MV_CC_SetBoolValue(handle, "TriggerCacheEnable", newTriggerCacheEnable);
 	if (MV_OK != nRet)
 	{
 		printf("Set TriggerCacheEnable fail! nRet [0x%x]\n", nRet);
