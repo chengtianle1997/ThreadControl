@@ -257,6 +257,73 @@ int Camera::SetFrameSpecInfo(int newFrameSpecInfo)
 	return nRet;
 }
 
+//Set TriggerSelector
+int Camera::SetTriggerSelector(int newTriggerSelector)
+{
+	nRet = MV_CC_SetEnumValue(handle, "FrameSpecInfoSelector", newTriggerSelector);
+	if (MV_OK != nRet)
+	{
+		printf("Set TriggerSelector fail! nRet [0x%x]\n", nRet);
+	}
+	return nRet;
+}
+
+//Set TriggerMode
+int Camera::SetTriggerMode(int newTriggerMode)
+{
+	nRet = MV_CC_SetEnumValue(handle, "FrameSpecInfoSelector", newTriggerMode);
+	if (MV_OK != nRet)
+	{
+		printf("Set TriggerMode fail! nRet [0x%x]\n", nRet);
+	}
+	return nRet;
+}
+
+//Set TriggerSource
+int Camera::SetTriggerSource(int newTriggerSource)
+{
+	nRet = MV_CC_SetEnumValue(handle, "FrameSpecInfoSelector", newTriggerSource);
+	if (MV_OK != nRet)
+	{
+		printf("Set TriggerSource fail! nRet [0x%x]\n", nRet);
+	}
+	return nRet;
+}
+
+//Set TriggerActivation
+int Camera::SetTriggerActivation(int newTriggerActivation)
+{
+	nRet = MV_CC_SetEnumValue(handle, "FrameSpecInfoSelector", newTriggerActivation);
+	if (MV_OK != nRet)
+	{
+		printf("Set TriggerActivation fail! nRet [0x%x]\n", nRet);
+	}
+	return nRet;
+}
+
+//Set TriggerDelay
+int Camera::SetTriggerDelay(float newTriggerDelay) {
+	nRet = MV_CC_SetFloatValue(handle, "FrameSpecInfoSelector", newTriggerDelay);
+	if (MV_OK != nRet)
+	{
+		printf("Set TriggerDelay fail! nRet [0x%x]\n", nRet);
+	}
+	return nRet;
+}
+
+//Set TriggerCacheEnable
+int Camera::SetTriggerCacheEnable(int newTriggerCacheEnable)
+{
+	nRet = MV_CC_SetBoolValue(handle, "FrameSpecInfoSelector", newTriggerCacheEnable);
+	if (MV_OK != nRet)
+	{
+		printf("Set TriggerCacheEnable fail! nRet [0x%x]\n", nRet);
+	}
+	return nRet;
+}
+
+
+
 //Start Grabbing
 int Camera::StartGrabbing() 
 {
@@ -348,10 +415,43 @@ bool  Camera::PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo)
 		printf("UserDefinedName: %s\n", pstMVDevInfo->SpecialInfo.stUsb3VInfo.chUserDefinedName);
 		printf("Serial Number: %s\n", pstMVDevInfo->SpecialInfo.stUsb3VInfo.chSerialNumber);
 		printf("Device Number: %d\n\n", pstMVDevInfo->SpecialInfo.stUsb3VInfo.nDeviceNumber);
+
+
 	}
 	else
 	{
 		printf("Not Support!\n");
 	}
 	return true;
+}
+
+//Get DeviceInfo
+bool Camera::GetDevInfo(int devNum,  MV_CC_DEVICE_INFO &pstMVDevInfo)
+{
+	//获取设备枚举列表
+	memset(&stDevList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
+	nRet = MV_CC_EnumDevices(MV_USB_DEVICE, &stDevList);
+
+	if (MV_OK != nRet)
+	{
+		printf("Enum Devices fail! nRet [0x%x]\n", nRet);
+		return nRet;
+	}
+
+	if (stDevList.nDeviceNum > 0)
+	{
+		for (unsigned int i = 0; i < stDevList.nDeviceNum; i++)
+		{
+			if (i == devNum)
+			{
+				pstMVDevInfo = *stDevList.pDeviceInfo[i];
+			}
+		}
+	}
+	else
+	{
+		printf("Find No Devices!\n");
+		return -1;
+	}
+	return MV_OK;
 }

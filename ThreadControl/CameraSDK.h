@@ -30,6 +30,13 @@ typedef struct {
 	int ROIOffsetY = 0;
 	int FrameSpecInfoSelector = 0;
 	int FrameSpecInfo = 0;
+	int TriggerSelector;
+	int TriggerMode;
+	int TriggerSource;
+	int TriggerActivation;
+	float TriggerDelay;
+	int TriggerCacheEnable;
+	MV_CC_DEVICE_INFO DevInfo;
 
 }CameraInitParam;
 
@@ -84,6 +91,24 @@ public:
 	//Set FrameSpecInfo
 	int SetFrameSpecInfo(int newFrameSpecInfo);
 
+	//Set TriggerSelector
+	int SetTriggerSelector(int newTriggerSelector);
+
+	//Set TriggerMode
+	int SetTriggerMode(int newTriggerMode);
+
+	//Set TriggerSource
+	int SetTriggerSource(int newTriggerSource);
+
+	//Set TriggerActivation
+	int SetTriggerActivation(int newTriggerActivation);
+
+	//Set TriggerDelay
+	int SetTriggerDelay(float newTriggerDelay);
+
+	//Set TriggerCacheEnable
+	int SetTriggerCacheEnable(int newTriggerCacheEnable);
+
 	//Get Image
 	int GetImage(MV_FRAME_OUT &stOutFrame);
 
@@ -92,6 +117,9 @@ public:
 
 	//Close Device
 	int CloseDevice();
+
+	//Get DeviceInfo
+	bool GetDevInfo(int devNum, MV_CC_DEVICE_INFO &pstMVDevInfo);
 
 private:
 	int nRet = MV_OK;  //Return
@@ -106,5 +134,8 @@ private:
 
 	//Print Device Info
 	bool  PrintDeviceInfo(MV_CC_DEVICE_INFO* pstMVDevInfo);
+
+	
+
 
 };

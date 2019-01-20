@@ -32,6 +32,13 @@ int CameraInit(CameraInitParam &camerainitparam)
 		camerainitparam.ROIHeight = camerainitparam.in_h;
 	}
 
+	//Get Device info
+	camera.GetDevInfo(camerainitparam.devNum, camerainitparam.DevInfo);
+	if (ret)
+	{
+		printf("Get DeviceInfo Failed");
+	}
+
 	//Set prop
 	//Set Exposureauto
 	ret = camera.SetExposureAuto(camerainitparam.ExposureAuto);
@@ -241,10 +248,18 @@ void CalImageThread()
 
 			//Package the Data
 			SocketPackage PackageData0;
-			PackageData0.CameraNum = camerainitparam.devNum;
+			for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
+			{
+				PackageData0.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+			}
+			
 			PackageData0.Framecnt = Buffer0Info.nFrameNum;
 			for (int i = 0; i < ImageHeight; i++)
-				PackageData0.Res[i] = Calparam.point[i].cx;
+			{
+				PackageData0.s[i] = Calparam.point[i].s;
+				PackageData0.ay[i] = Calparam.point[i].ay;
+			}
+				
 			//SendQueue.push(PackageData0);
 			//int q = SendQueue.size();
 			if (EnableSendData) 
@@ -294,10 +309,17 @@ void CalImageThread()
 
 			//Package the Data
 			SocketPackage PackageData1;
-			PackageData1.CameraNum = camerainitparam.devNum;
-			PackageData1.Framecnt = Buffer1Info.nFrameNum;
+			for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
+			{
+				PackageData1.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+			}
+
+			PackageData1.Framecnt = Buffer0Info.nFrameNum;
 			for (int i = 0; i < ImageHeight; i++)
-				PackageData1.Res[i] = Calparam.point[i].cx;
+			{
+				PackageData1.s[i] = Calparam.point[i].s;
+				PackageData1.ay[i] = Calparam.point[i].ay;
+			}
 			//SendQueue.push(PackageData1);
 			if (EnableSendData)
 			{
@@ -531,6 +553,12 @@ int main(int argc,char* argv[])
 	args.add<UINT>("xr", 'x', "XRange", false, 15, cmdline::range(0, 100));
 	args.add<UINT>("gthread", 't', "GaussThread", false, 2, cmdline::range(1, 20));
 	args.add<FLOAT>("doorin", 'd', "DoorIn", false, 0.50, cmdline::range<FLOAT>(0, 100));
+	args.add<FLOAT>("bmm", '\0', "b Param in mm", false, 492.4, cmdline::range<FLOAT>(-10000, 10000));
+	args.add<FLOAT>("phi", '\0', "phi Param in rad", false, 1.168, cmdline::range<FLOAT>(-10000, 10000));
+	args.add<FLOAT>("uo", '\0', "uo Param in pixels", false, 1226.7, cmdline::range<FLOAT>(-10000, 10000));
+	args.add<FLOAT>("vo", '\0', "vo Param in pixels", false, 1008.4, cmdline::range<FLOAT>(-10000, 10000));
+	args.add<FLOAT>("fx", '\0', "fx Param in pixels", false, 2371.9, cmdline::range<FLOAT>(-10000, 10000));
+	args.add<FLOAT>("fy", '\0', "fy Param in pixels", false, 2358.9, cmdline::range<FLOAT>(-10000, 10000));
 	//EncoderParam
 	args.add<UINT>("fcut", 'c', "FrameCut", false, 5, cmdline::range(0, 60));
 	args.add<UINT>("brate", 'b', "BitRate", false, 200000000, cmdline::range(1000, 1000000000));
@@ -695,6 +723,37 @@ int main(int argc,char* argv[])
 	{
 		IdentifyParam.doorin = args.get<FLOAT>("doorin");
 	}
+	//bmm
+	if (args.exist("bmm"))
+	{
+		Calparam.b = args.get<FLOAT>("bmm");
+	}
+	//phi
+	if (args.exist("phi"))
+	{
+		Calparam.phi = args.get<FLOAT>("phi");
+	}
+	//uo
+	if (args.exist("uo"))
+	{
+		Calparam.uo = args.get<FLOAT>("uo");
+	}
+	//vo
+	if (args.exist("vo"))
+	{
+		Calparam.vo = args.get<FLOAT>("vo");
+	}
+	//fx
+	if (args.exist("fx"))
+	{
+		Calparam.fx = args.get<FLOAT>("fx");
+	}
+	//fy
+	if (args.exist("fy"))
+	{
+		Calparam.fy = args.get<FLOAT>("fy");
+	}
+
 
 	//Encoder
 	//FrameCut

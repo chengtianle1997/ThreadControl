@@ -229,7 +229,13 @@ void GaussCal::GaussCenter(GaussCalParam &guasscalparam) {
 			//结果计算
 			//watch.restart();
 			guasscalparam.point[i].cx = (-cvmGet(B, 1, 0))*1.0 / (2 * cvmGet(B, 2, 0));
+			guasscalparam.point[i].cy = i;
 			guasscalparam.point[i].bright = exp(cvmGet(B, 0, 0) - cvmGet(B, 1, 0)*cvmGet(B, 1, 0) / (4 * cvmGet(B, 2, 0)));
+
+			guasscalparam.point[i].ay = atan((guasscalparam.vo - guasscalparam.point[i].cy)/ guasscalparam.fy);
+			guasscalparam.point[i].s = guasscalparam.b*tan(guasscalparam.phi + atan((guasscalparam.uo - guasscalparam.point[i].cx) / guasscalparam.fx))/cos(guasscalparam.point[i].ay);
+			
+
 			//watch.stop();
 			//cout << "结果计算耗时:" << watch.elapsed() << endl;
 			cvReleaseMat(&X);

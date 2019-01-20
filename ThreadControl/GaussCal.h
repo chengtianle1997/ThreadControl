@@ -22,6 +22,8 @@ typedef struct
 	double cy; //the row location
 	int bright; //The Greatest brightness in GaussFit
 	int Rows; //the total num of rows(only saved in point[0])
+	double s;
+	double ay;
 }MPoint;
 
 //The information of GaussPoint
@@ -40,6 +42,15 @@ typedef struct
 	double minError = 0.13; //the error to bottom for Gausspoint selection
 	int xRange = 15; //horizontal range base on the estimated center for Gausspoint selection
 	int threads = 2; //threads used in OpenMP for Calculation
+
+	//The Physical Param Input(From Calib Result)
+	double b = 492.4;
+	double phi = 1.168;
+	double uo = 1226.7;
+	double vo = 1008.4;
+	double fx = 2371.9;
+	double fy = 2358.9;
+	
 }GaussCalParam;
 
 //the param of GetGaussIdentify
