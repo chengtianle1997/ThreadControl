@@ -75,6 +75,7 @@ int AcqExit = 0;
 int CalExit = 0;
 int EncodeExit = 0;
 int SendExit = 0;
+int TimerExit = 0;
 
 //Functional choice
 int ResVisAuto = 0;

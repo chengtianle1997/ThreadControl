@@ -5,6 +5,8 @@
 
 #include "main.h"
 
+ofstream outFile;
+
 
 int CameraInit(CameraInitParam &camerainitparam)
 {
@@ -175,7 +177,7 @@ int CameraInit(CameraInitParam &camerainitparam)
 
 int CameraClean()
 {
-	int ret;
+	int ret =0;
 	ret = camera.StopGrabbing();
 	if (ret)
 	{
@@ -188,6 +190,7 @@ int CameraClean()
 	}
 	free(Buffer0);
 	free(Buffer1);
+	return 1;
 }
 
 
@@ -295,6 +298,9 @@ void CalImageThread()
 				PackageData0.s[i] = Calparam.point[i].s;
 				PackageData0.ay[i] = Calparam.point[i].ay;
 			}
+
+			outFile << PackageData0.SerialNumber << "," << PackageData0.Framecnt;
+			outFile << endl;
 				
 			//SendQueue.push(PackageData0);
 			//int q = SendQueue.size();
@@ -307,6 +313,8 @@ void CalImageThread()
 				client.ClientSend(buf, sizeof(SocketPackage));
 
 				free(buf);
+
+				
 			}
 			
 			//Performance Check
@@ -356,6 +364,10 @@ void CalImageThread()
 				PackageData1.s[i] = Calparam.point[i].s;
 				PackageData1.ay[i] = Calparam.point[i].ay;
 			}
+
+			outFile << PackageData1.SerialNumber << "," << PackageData1.Framecnt;
+			outFile << endl;
+
 			//SendQueue.push(PackageData1);
 			if (EnableSendData)
 			{
@@ -364,6 +376,8 @@ void CalImageThread()
 				memcpy(buf, &PackageData1, sizeof(SocketPackage));
 
 				client.ClientSend(buf, sizeof(SocketPackage));
+
+				
 			}
 			//Performance Check
 			PerforFramecnt++;
@@ -500,7 +514,7 @@ void EncodeMJPEGThread()
 void TimerPerformance()
 {			
 	watch.start();
-	while (1) {
+	while (!TimerExit) {
 		watch.stop();
 		if (watch.elapsed() > 1000000)
 		{
@@ -550,6 +564,74 @@ void SendResToPort() {
 		}
 	}
 }
+
+//³ÌÐòÍ£Ö¹Ö¸Áî¼àÌý
+BOOL __stdcall ConsoleHandler(DWORD cevent) {
+	//char mesg[128];
+
+	switch (cevent)
+	{
+
+	case CTRL_C_EVENT:
+	{
+		/*MessageBox(NULL, "ctrl+c received!", "cevent", MB_OK);*/
+
+		AcqExit = 1;
+		CalExit = 1;
+		EncodeExit = 1;
+		TimerExit = 1;
+	}
+		break;
+	case CTRL_BREAK_EVENT:
+		/*MessageBox(NULL,
+			"ctrl+break received!", "cevent", MB_OK);*/
+		break;
+	case CTRL_CLOSE_EVENT:
+		/*MessageBox(NULL,
+			"program being closed!", "cevent", MB_OK);*/
+	{
+		AcqExit = 1;
+		CalExit = 1;
+		EncodeExit = 1;
+		TimerExit = 1;
+
+		/*int ret = 0;
+		ret = CameraClean();
+		if (ret) {
+			printf("Camera Clean failed\n");
+		}
+		CameraClean();
+		if (Format == 0)
+		{
+			EncoderMJPEGClean();
+		}
+		else if (Format == 1)
+		{
+			EncoderJPEGClean();
+		}
+
+		ClientClean();
+
+		free(FinalPath);
+
+		exit(0);*/
+	}
+		break;
+
+	case CTRL_LOGOFF_EVENT:
+		/*MessageBox(NULL,
+			"user is logging off!", "cevent", MB_OK);*/
+		break;
+	case CTRL_SHUTDOWN_EVENT:
+		/*MessageBox(NULL,
+			"user is logging off!", "cevent", MB_OK);*/
+		break;
+
+	}
+	return true;
+}
+
+
 
 
 
@@ -873,6 +955,14 @@ int main(int argc,char* argv[])
 
 	//printf("ADDR :%s", clientparam.ServerAddr);
 
+
+	//add by ylxu at 2019-1-23
+	char * Filename = (char*)malloc(100);
+	sprintf(Filename, "Send%d.csv", camerainitparam.devNum);
+	outFile.open(Filename, ios::out);
+	free(Filename);
+
+
 	int ret;
 	//camerainitparam.AcquisitionFrameRate = 60.0;
 	ret = CameraInit(camerainitparam);
@@ -923,6 +1013,7 @@ int main(int argc,char* argv[])
 
 	//AcqImageThread();
 	//watch.start();
+	SetConsoleCtrlHandler(ConsoleHandler, TRUE);
 
 	thread acqthread(AcqImageThread);
 
@@ -979,23 +1070,28 @@ int main(int argc,char* argv[])
 	acqthread.join();
 
 	//SendClient.join();
+	printf("Stop Grabing¡­¡­\n");
 	ret = CameraClean();
-	if (ret) {
+	if (!ret) {
 		printf("Camera Clean failed\n");
 	}
-	CameraClean();
+	
 	if (Format == 0)
 	{
+		printf("Stop Encoding......\n");
 		EncoderMJPEGClean();
 	}
 	else if (Format == 1)
 	{
+		printf("Stop Encoding......\n");
 		EncoderJPEGClean();
 	}
 	
 	ClientClean();
 
 	free(FinalPath);
+
+	printf("Application Accomplished!\n\n");
 
 	return 0;
 }
