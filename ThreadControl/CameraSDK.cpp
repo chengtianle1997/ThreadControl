@@ -1,12 +1,12 @@
 #include "CameraSDK.h"
 
 //Get Device List
-int Camera::GetDevList()
+int Camera::GetDevList(CameraInitParam &camerainitparam)
 {
 	//获取设备枚举列表
 	memset(&stDevList, 0, sizeof(MV_CC_DEVICE_INFO_LIST));
 	nRet = MV_CC_EnumDevices(MV_USB_DEVICE, &stDevList);
-
+	
 	if (MV_OK != nRet)
 	{
 		printf("Enum Devices fail! nRet [0x%x]\n", nRet);
@@ -25,14 +25,34 @@ int Camera::GetDevList()
 				break;
 				return -1;
 			}
+
 			PrintDeviceInfo(pDeviceInfo);
+
+			//int strl = 0;
+			//strl = strlen((const char*)camerainitparam.SerialNum);
+
+			//通过序列号查找相机
+			if (!strcmp((const char *)camerainitparam.SerialNum, (const char*)stDevList.pDeviceInfo[i]->SpecialInfo.stUsb3VInfo.chSerialNumber)) {
+				printf("%s Camera Launched\n", camerainitparam.SerialNum);
+				camerainitparam.devNum = i;
+				GetCamera = true;
+			}
+
+			
+		}
+		if (!GetCamera) {
+			printf("Cannot Find the Camera you Choose!");
+			//搜索相机异常 弹出程序
+			return -2;
 		}
 	}
 	else
 	{
 		printf("Find No Devices!\n");
-		return -1;
+		//搜索相机异常 弹出程序
+		return -2;
 	}
+	
 	return MV_OK;
 }
 

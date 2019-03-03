@@ -14,7 +14,7 @@ using namespace cv;
 using namespace std;
 
 typedef struct {
-	int devNum = 0; //device No.
+	int devNum; //device No.
 	int in_w; 
 	int in_h;
 	float ExposureTime = 5000;
@@ -23,6 +23,7 @@ typedef struct {
 	int GainAuto = 0;
 	float AcquisitionFrameRate = 60; //The value is in effect when Trigger Mode is off
 	//int DeviceId = 0; 
+	unsigned char SerialNum[INFO_MAX_BUFFER_SIZE];
 	int DeviceUserId = 0;
 	int ROIHeight = 0;
 	int ROIWidth = 0;
@@ -43,8 +44,9 @@ typedef struct {
 
 class Camera {
 public:
+	bool GetCamera = 0;
 	//Get Device List
-	int GetDevList();
+	int GetDevList(CameraInitParam &camerainitparam);
 
 	//Open Camera 
 	int OpenCamera(CameraInitParam &camerainitparam);

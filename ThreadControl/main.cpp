@@ -12,7 +12,7 @@ int CameraInit(CameraInitParam &camerainitparam)
 {
 	int ret;
 
-	ret = camera.GetDevList();
+	ret = camera.GetDevList(camerainitparam);
 	if (ret)
 	{
 		return ret;
@@ -657,7 +657,7 @@ int main(int argc,char* argv[])
 	args.add<FLOAT>("gain", 'g', "CameraGain", false, 15, cmdline::range<FLOAT>(0, 15));
 	args.add<UINT>("gainauto", '\0', "CameraGainAuto", false, 0, cmdline::range(0, 2));
 	args.add<FLOAT>("frate", 'r', "CameraAcquisitionFrameRate", false, 60, cmdline::range<FLOAT>(0, 200));
-	args.add<UINT>("devid", 'v', "CameraDeviceId", false, 0, cmdline::range(0, 10));
+	args.add<string>("devsr", 'v', "CameraDeviceSerialNum", false, "");
 	args.add<string>("usrid", '\0', "DeviceUserId", false, "");
 	args.add<UINT>("roih", '\0', "ROIHeight", false, 2048, cmdline::range(0, 2048));
 	args.add<UINT>("roiw", '\0', "ROIWidth", false, 2592, cmdline::range(0, 2592));
@@ -744,7 +744,7 @@ int main(int argc,char* argv[])
 		break;
 		case 8:
 		{
-			camera.GetDevList();
+			camera.GetDevList(camerainitparam);
 			return 0;
 		}
 		break;
@@ -781,9 +781,15 @@ int main(int argc,char* argv[])
 		camerainitparam.AcquisitionFrameRate = args.get<FLOAT>("frate");
 	}
 	//CameraDeviceId
-	if (args.exist("devid"))
+	if (args.exist("devsr"))
 	{
-		camerainitparam.devNum = args.get<UINT>("devid");
+		SrNum = args.get<string>("devsr").data();
+		int srlen = 0;
+		srlen = strlen(SrNum);
+		for (int i = 0; i < srlen; i++) {
+			camerainitparam.SerialNum[i] = (unsigned char)SrNum[i];
+		}
+		
 	}
 	//DeviceUserId
 	if (args.exist("usrid"))
@@ -968,6 +974,7 @@ int main(int argc,char* argv[])
 	ret = CameraInit(camerainitparam);
 	if (ret) {
 		printf("Camera Init failed\n");
+		return -1;
 	}
 	
 	encoderparam.in_w = camerainitparam.in_w;
@@ -1004,8 +1011,6 @@ int main(int argc,char* argv[])
 		ClientInit();
 	}
 	
-	
-
 	//Encodeparam
 	encodeparam.nHeight = ImageHeight;
 	encodeparam.nWidth = ImageWidth;
@@ -1013,6 +1018,8 @@ int main(int argc,char* argv[])
 
 	//AcqImageThread();
 	//watch.start();
+
+	//·ÅÖÃ³ÌÐò¹Ø±Õ¼àÌý
 	SetConsoleCtrlHandler(ConsoleHandler, TRUE);
 
 	thread acqthread(AcqImageThread);

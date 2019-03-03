@@ -104,6 +104,7 @@ static queue<SocketPackage> SendQueue;
 //int DeviceNum = 0;
 const char* FilePath = "C:\\EncodeResult";
 char* FinalPath;
+const char* SrNum;
 
 int Format = 0;
 
