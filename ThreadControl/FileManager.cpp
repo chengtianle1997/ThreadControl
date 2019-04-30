@@ -1,12 +1,12 @@
 #include "FileManager.h"
 #include "afxwin.h"
 
-int FileManager::CreateFolder(const char* filepath, char* finalpath, int Devnum)
+int FileManager::CreateFolder(const char* filepath, char* finalpath, unsigned char *SerialNum)
 {
 
 	BOOL ret;
 
-	sprintf(finalpath, "%s\\Camera%d_Image", filepath, Devnum);
+	sprintf(finalpath, "%s\\Camera%s_Image", filepath, SerialNum);
 
 	ret = CreateDirectory(filepath, NULL);
 	if (!ret)

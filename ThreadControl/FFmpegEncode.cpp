@@ -191,7 +191,7 @@ int Encoder::InitMJPEG(EncoderParam encoderparam)
 	char* Filename ;
 
 	Filename = (char*)malloc(500);
-	sprintf(Filename, "%s\\Camera_%d.mjpeg", encoderparam.filepath, encoderparam.CameraNum);
+	sprintf(Filename, "%s\\Camera_%s.mjpeg", encoderparam.filepath, encoderparam.SerialNum);
 
 	//Output bitstream
 	fp_out = fopen(Filename, "wb");

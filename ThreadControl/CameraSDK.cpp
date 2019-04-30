@@ -12,7 +12,7 @@ int Camera::GetDevList(CameraInitParam &camerainitparam)
 		printf("Enum Devices fail! nRet [0x%x]\n", nRet);
 		return nRet;
 	}
-
+	
 	if (stDevList.nDeviceNum > 0)
 	{
 		for (unsigned int i = 0; i < stDevList.nDeviceNum; i++)
@@ -61,7 +61,7 @@ int Camera::OpenCamera(CameraInitParam &camerainitparam)
 {
 	if (camerainitparam.devNum >= stDevList.nDeviceNum)
 	{
-		printf("Intput error!\n");
+		printf("Input error!\n");
 		return -1;
 	}
 	//选择设备并创建句柄

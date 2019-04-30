@@ -1,4 +1,6 @@
 #pragma once
+
+#include "MvCameraControl.h"
 extern "C"
 
 {
@@ -29,6 +31,7 @@ typedef struct {
 
 	//CameraNum
 	int CameraNum = 0;
+	unsigned char SerialNum[INFO_MAX_BUFFER_SIZE];
 	const char* filepath;
 
 }EncoderParam;

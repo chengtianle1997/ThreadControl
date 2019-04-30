@@ -17,6 +17,8 @@ int CameraInit(CameraInitParam &camerainitparam)
 	{
 		return ret;
 	}
+
+
 	//printf("Please choose a camera:");
 	//scanf("%d", &camerainitparam.devNum);
 	ret = camera.OpenCamera(camerainitparam);
@@ -242,10 +244,192 @@ void ClientClean() {
 	client.ClientClose();
 }
 
-int CreateFolder(const char* filepath, char* finalpath, int Devnum)
+void CsClinetInit() {
+	int ret;
+
+	printf("The CsClient is connecting.....\n");
+
+	//int Serverport;
+
+	Serverport = csclientparam.StartUpPort + camerainitparam.devNum;
+
+	printf("ServerPort:%d\n", Serverport);
+
+	ret = client.CsClientConnect(Serverport, csclientparam.ServerAddr);
+
+	if (ret)
+	{
+		printf("Cs Connecting failed!");
+	}
+}
+
+void CsClientClean() {
+	printf("Closing CsSocket......\n");
+	client.CsClientClose();
+}
+
+void DsClientInit() {
+	int ret;
+
+	printf("The DsClient is connecting.....\n");
+
+	//int Serverport;
+
+	Serverport = dsclientparam.StartUpPort + camerainitparam.devNum;
+
+	ret = client.DsClientConnect(Serverport, dsclientparam.ServerAddr);
+
+	if (ret)
+	{
+		printf("Ds Connecting failed!");
+	}
+}
+
+void DsClientClean() {
+	printf("Closing DsSocket......\n");
+	client.DsClientClose();
+}
+
+
+void ResizeAndSendPic() {
+	if (EnableSendData) {
+		if (CodeState0 && !Buffer0Mutex)
+		{
+			Mat src{
+			cvSize(ImageWidth,ImageHeight),
+			CV_8UC1,
+			Buffer0
+			};
+			Mat image0;
+			resize(src, image0, Size(PictureWidth, PictureHeight));
+			//imshow("1", image0);
+			//cvWaitKey(0);
+			SocketPicture Sockpic;
+			//数据入包
+			memcpy(Sockpic.SerialNum ,camerainitparam.SerialNum,64);
+			Sockpic.Framecnt = encodeparam.pts;
+			for (int i = 0; i < PictureHeight; i++)
+			{
+				uchar* data = image0.ptr<uchar>(i);
+				for (int j = 0; j < PictureWidth; j++)
+				{
+					Sockpic.Picture[i][j] = data[j];
+				}
+			}
+			//数据转换
+			char* picturebuffer = (char*)malloc(sizeof(SocketPicture));
+			memcpy(picturebuffer, &Sockpic, sizeof(SocketPicture));
+
+			//发包
+			client.CsClientSend(picturebuffer, sizeof(SocketPicture));
+
+		}
+		else if (CodeState1 && !Buffer1Mutex)
+		{
+			Mat src{
+			cvSize(ImageWidth,ImageHeight),
+			CV_8UC1,
+			Buffer1
+			};
+			Mat image1;
+			resize(src, image1, Size(PictureWidth, PictureHeight));
+			SocketPicture Sockpic;
+			//数据入包
+			memcpy(Sockpic.SerialNum, camerainitparam.SerialNum, 64);
+			Sockpic.Framecnt = encodeparam.pts;
+			for (int i = 0; i < PictureHeight; i++)
+			{
+				uchar* data = image1.ptr<uchar>(i);
+				for (int j = 0; j < PictureWidth; j++)
+				{
+					Sockpic.Picture[i][j] = data[j];
+				}
+			}
+			//数据转换
+			char* picturebuffer = (char*)malloc(sizeof(SocketPicture));
+			memcpy(picturebuffer, &Sockpic, sizeof(SocketPicture));
+
+			//发包
+			client.CsClientSend(picturebuffer, sizeof(SocketPicture));
+
+		}
+	}
+
+	
+
+}
+
+void SendDataToCsServer() {
+	if (GetImage0 && !CalEnd0 && !Buffer0Mutex) {
+		//Package the Data
+		SocketPackageTrim PackageData0;
+		for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
+		{
+			PackageData0.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+		}
+
+		PackageData0.Framecnt = Buffer0Info.nFrameNum;
+		for (int i = 0; i < DataRows/DataTrim; i++)
+		{
+			PackageData0.s[i] = Calparam.point[i*10].s;
+			PackageData0.ay[i] = Calparam.point[i*10].ay;
+		}
+
+		//outFile << PackageData0.SerialNumber << "," << PackageData0.Framecnt;
+		//outFile << endl;
+
+		//SendQueue.push(PackageData0);
+		//int q = SendQueue.size();
+		if (EnableSendData)
+		{
+			char* buf = (char*)malloc(sizeof(SocketPackageTrim));
+
+			memcpy(buf, &PackageData0, sizeof(SocketPackageTrim));
+
+			client.DsClientSend(buf, sizeof(SocketPackageTrim));
+
+			free(buf);
+		}
+	}
+
+	else if (GetImage1 && !CalEnd1 && !Buffer1Mutex)
+	{
+		//Package the Data
+		SocketPackageTrim PackageData1;
+		for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
+		{
+			PackageData1.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+		}
+
+		PackageData1.Framecnt = Buffer0Info.nFrameNum;
+		for (int i = 0; i < DataRows / DataTrim; i++)
+		{
+			PackageData1.s[i] = Calparam.point[i*10].s;
+			PackageData1.ay[i] = Calparam.point[i*10].ay;
+		}
+
+		//outFile << PackageData1.SerialNumber << "," << PackageData1.Framecnt;
+		//outFile << endl;
+
+		//SendQueue.push(PackageData1);
+		if (EnableSendData)
+		{
+			char* buf = (char*)malloc(sizeof(SocketPackageTrim));
+
+			memcpy(buf, &PackageData1, sizeof(SocketPackageTrim));
+
+			client.DsClientSend(buf, sizeof(SocketPackageTrim));
+
+
+		}
+	}
+
+}
+
+int CreateFolder(const char* filepath, char* finalpath, unsigned char* SerialNum)
 {
 	int nRet;
-	nRet = filemanager.CreateFolder(filepath, finalpath, Devnum);
+	nRet = filemanager.CreateFolder(filepath, finalpath, SerialNum);
 	
 	return nRet;
 }
@@ -286,36 +470,55 @@ void CalImageThread()
 			CalEnd0 = 1;
 
 			//Package the Data
-			SocketPackage PackageData0;
-			for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
-			{
-				PackageData0.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+			if (EnableCSSend) {
+				if (PerforFramecntAll) {
+					if (PerforFramecntAll >= FrameRateControlData) {
+						if ((Buffer0Info.nFrameNum % ((PerforFramecntAll / FrameRateControlData))) == 0) {
+							thread SendToCsServer0(SendDataToCsServer);
+							SendToCsServer0.detach();
+						}
+					}
+					else if (PerforFramecntAll < FrameRateControlData) {
+						thread SendToCsServer0(SendDataToCsServer);
+						SendToCsServer0.detach();
+					}
+				}
 			}
 			
-			PackageData0.Framecnt = Buffer0Info.nFrameNum;
-			for (int i = 0; i < ImageHeight; i++)
+			if (EnableSendData)
 			{
-				PackageData0.s[i] = Calparam.point[i].s;
-				PackageData0.ay[i] = Calparam.point[i].ay;
+				SocketPackage PackageData0;
+				for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
+				{
+					PackageData0.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+				}
+
+				PackageData0.Framecnt = Buffer0Info.nFrameNum;
+				for (int i = 0; i < ImageHeight; i++)
+				{
+					PackageData0.s[i] = Calparam.point[i].s;
+					PackageData0.ay[i] = Calparam.point[i].ay;
+				}
+
+				//outFile << PackageData0.SerialNumber << "," << PackageData0.Framecnt;
+				//outFile << endl;
+
+				//SendQueue.push(PackageData0);
+				//int q = SendQueue.size();
+				if (EnableSendData)
+				{
+					char* buf = (char*)malloc(sizeof(SocketPackage));
+
+					memcpy(buf, &PackageData0, sizeof(SocketPackage));
+
+					client.ClientSend(buf, sizeof(SocketPackage));
+
+					free(buf);
+
+
+				}
 			}
-
-			outFile << PackageData0.SerialNumber << "," << PackageData0.Framecnt;
-			outFile << endl;
-				
-			//SendQueue.push(PackageData0);
-			//int q = SendQueue.size();
-			if (EnableSendData) 
-			{
-				char* buf = (char*)malloc(sizeof(SocketPackage));
-
-				memcpy(buf, &PackageData0, sizeof(SocketPackage));
-
-				client.ClientSend(buf, sizeof(SocketPackage));
-
-				free(buf);
-
-				
-			}
+			
 			
 			//Performance Check
 			PerforFramecnt++;
@@ -323,6 +526,7 @@ void CalImageThread()
 		}
 		else if (GetImage1 && !CalEnd1 && !Buffer1Mutex) 
 		{
+			
 			Mat matImage{
 				cvSize(ImageWidth,ImageHeight),
 				CV_8UC1,
@@ -352,33 +556,60 @@ void CalImageThread()
 			CalEnd1 = 1;
 
 			//Package the Data
-			SocketPackage PackageData1;
-			for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
+
+			if (EnableCSSend) {
+				if (PerforFramecntAll) {
+					if (PerforFramecntAll >= FrameRateControlData)
+					{
+						if ((Buffer1Info.nFrameNum % ((PerforFramecntAll / FrameRateControlData))) == 0)
+						{
+							thread SendToCsServer1(SendDataToCsServer);
+							SendToCsServer1.detach();
+						}
+					}
+					else if (PerforFramecntAll < FrameRateControlData)
+					{
+						thread SendToCsServer1(SendDataToCsServer);
+						SendToCsServer1.detach();
+					}
+				}
+			}
+			
+			
+			if (EnableSendData) 
 			{
-				PackageData1.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+				SocketPackage PackageData1;
+				for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
+				{
+					PackageData1.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+				}
+
+				PackageData1.Framecnt = Buffer1Info.nFrameNum;
+				for (int i = 0; i < ImageHeight; i++)
+				{
+					PackageData1.s[i] = Calparam.point[i].s;
+					PackageData1.ay[i] = Calparam.point[i].ay;
+				}
+
+				//outFile << PackageData1.SerialNumber << "," << PackageData1.Framecnt;
+				//outFile << endl;
+
+				//SendQueue.push(PackageData1);
+				if (EnableSendData)
+				{
+					char* buf = (char*)malloc(sizeof(SocketPackage));
+
+					memcpy(buf, &PackageData1, sizeof(SocketPackage));
+
+					client.ClientSend(buf, sizeof(SocketPackage));
+
+
+				}
 			}
 
-			PackageData1.Framecnt = Buffer0Info.nFrameNum;
-			for (int i = 0; i < ImageHeight; i++)
-			{
-				PackageData1.s[i] = Calparam.point[i].s;
-				PackageData1.ay[i] = Calparam.point[i].ay;
-			}
+			
 
-			outFile << PackageData1.SerialNumber << "," << PackageData1.Framecnt;
-			outFile << endl;
 
-			//SendQueue.push(PackageData1);
-			if (EnableSendData)
-			{
-				char* buf = (char*)malloc(sizeof(SocketPackage));
-
-				memcpy(buf, &PackageData1, sizeof(SocketPackage));
-
-				client.ClientSend(buf, sizeof(SocketPackage));
-
-				
-			}
 			//Performance Check
 			PerforFramecnt++;
 			delete(Calparam.point);
@@ -399,64 +630,182 @@ void AcqImageThread()
 
 	int Framenum;
 
+	//定义变量
+	int dark[9000];     //黑图的编号
+	int bright[4000];   //白图的编号
+	//string ADD;              //获取地址时使用
+	int i(1), j(0), k(0);      //循环和计数变量
+	float diff = 0.0;          //相邻两图片的亮度差值
+	int Refer = 0;
+	int Refer2 = 0;
+	int Refer3 = 0;          //亮度参考值
+	float MeanDev = 0.0;     //平均偏差
+	float Mean = 0.0;        //平均值
+	int num;                 //文件夹中图片的数量
+	int Minchange = 40;           //亮度变化多大时重新取样
+
+	int Analyzingcounter = 0;
+	float AverageofAverage = 0;
+	float *AverageData = (float*)malloc(encodeparam.FrameCut+1);
+	float MaxAvr = 0;
+	float MaxVeAvr = 0;
+	int MaxPos = 0;
+	int MaxVerify = 0;
+	int FindBeatTimes = 0;
+	
+
 	while (!AcqExit) {
 
 		//stOutFrame = (MV_FRAME_OUT*)malloc(sizeof(MV_FRAME_OUT));
-		camera.GetImage(stOutFrame);
-		//Decide the Buffer 
-		lock_guard<mutex> lockGuard(m);
-		if (CalEnd0)
-		{
-			Buffer0Mutex = 1;
-			memcpy(Buffer0, (stOutFrame).pBufAddr, SizeofPixels);
-			Buffer0Mutex = 0;
-			Buffer0Info = stOutFrame.stFrameInfo;
-			Framenum = stOutFrame.stFrameInfo.nFrameNum;
-			
-			
-			if (CalEnable) {
-				CalEnd0 = 0;
-				GetImage0 = 1;
-			}
+		int ret = camera.GetImage(stOutFrame);
+		if (ret == MV_OK) {
+			//Analyze The photo
+			if ((Analyzingcounter < (encodeparam.FrameCut + 1)) && !AnalyzeEnd )
+			{
+				Mat matImage{
+				cvSize(ImageWidth,ImageHeight),
+				CV_8UC1,
+				(stOutFrame).pBufAddr
+				};
 
-			if (EncodeEnable) {
-				//Decide if Encode
-				if (Framenum % (encodeparam.FrameCut + 1) == 0)
+				Rect rect(0,0,camerainitparam.in_w,500);
+
+				Mat RoiImage = matImage(rect);
+
+				cv::Scalar AverPic = cv::mean(RoiImage);
+
+				//AverageData[stOutFrame.stFrameInfo.nFrameNum% (encodeparam.FrameCut + 1)] =  AverPic[0];
+
+				//AverageofAverage = (AverageofAverage + AverageData[stOutFrame.stFrameInfo.nFrameNum % (encodeparam.FrameCut + 1)]) / 2;
+				
+				if (AverPic[0] > MaxAvr)
 				{
-					CodeState0 = 1;
-					GetImage0 = 0;
-					CalEnd0 = 1;
-				}
-					
-			
-			}
-			
-			
-		}
-		else if (CalEnd1)
-		{
-			Buffer1Mutex = 1;
-			memcpy(Buffer1, (stOutFrame).pBufAddr, SizeofPixels);
-			Buffer1Mutex = 0;
-			Buffer1Info = stOutFrame.stFrameInfo;
-			Framenum = stOutFrame.stFrameInfo.nFrameNum;
-			if (CalEnable) {
-				CalEnd1 = 0;
-				GetImage1 = 1;
-			}
+					MaxAvr = AverPic[0];
+					MaxPos = stOutFrame.stFrameInfo.nFrameNum % (encodeparam.FrameCut + 1);
 
-			if (EncodeEnable) {
-				//Decide if Encode
-				if (Framenum % (encodeparam.FrameCut + 1) == 0)
+				}				
+				Analyzingcounter++;
+
+
+			}
+			if ( Analyzingcounter >= (encodeparam.FrameCut + 1) && !AnalyzeEnd )
+			{
+				Mat matImage{
+				cvSize(ImageWidth,ImageHeight),
+				CV_8UC1,
+				(stOutFrame).pBufAddr
+				};
+
+				Rect rect(0, 0, camerainitparam.in_w, 500);
+
+				Mat RoiImage = matImage(rect);
+
+				cv::Scalar AverPic = cv::mean(RoiImage);
+
+				//cv::Scalar AverPic = cv::mean(matImage);
+
+				if (AverPic[0] > MaxVeAvr)
 				{
-					CodeState1 = 1;
-					GetImage1 = 0;
-					CalEnd1 = 1;
+					MaxVeAvr = AverPic[0];
+					MaxVerify = stOutFrame.stFrameInfo.nFrameNum % (encodeparam.FrameCut + 1);
+
+				}
+
+				if (Analyzingcounter == 2 * (encodeparam.FrameCut + 1) - 1)
+				{
+					//Get the right beat
+					if (MaxVerify == MaxPos) {
+						AnalyzeEnd = true;
+						BeatRecord = MaxVerify;
+						Analyzingcounter = 0;
+						MaxVerify = 0;
+						MaxAvr = 0;
+						FindBeatTimes = 0;
+					}
+					//Get The Wrong one
+					else {
+						Analyzingcounter = 0;
+						MaxVerify = 0;
+						MaxAvr = 0;
+						FindBeatTimes++;
+					}
+				}
+
+				Analyzingcounter++;
+
+				//Get Beat Time out
+				if (FindBeatTimes > 30) {
+					AnalyzeEnd = true;
+					printf("\nCan't find the beat!\n\n");
+					FindBeatTimes = 0;
+					Analyzingcounter = 0;
+					MaxVerify = 0;
+					MaxAvr = 0;
+				}
+
+			}
+
+			//Decide the Buffer 
+			lock_guard<mutex> lockGuard(m);
+			if (CalEnd0)
+			{
+				Buffer0Mutex = 1;
+				memcpy(Buffer0, (stOutFrame).pBufAddr, SizeofPixels);
+				Buffer0Mutex = 0;
+				Buffer0Info = stOutFrame.stFrameInfo;
+				DetectState0 = 1;
+				Framenum = stOutFrame.stFrameInfo.nFrameNum;
+				//printf("Framenum:%d",Framenum);
+				//Classify the picture according to the beat
+				if (Framenum % (encodeparam.FrameCut + 1) == BeatRecord) 
+				{
+					if (EncodeEnable) 
+					{
+						CodeState0 = 1;
+						GetImage0 = 0;
+						CalEnd0 = 1;
+					}
+
+				}
+				else
+				{
+					if (CalEnable) {
+						CalEnd0 = 0;
+						GetImage0 = 1;
+					}
 				}
 
 
 			}
+			else if (CalEnd1)
+			{
+				Buffer1Mutex = 1;
+				memcpy(Buffer1, (stOutFrame).pBufAddr, SizeofPixels);
+				Buffer1Mutex = 0;
+				Buffer1Info = stOutFrame.stFrameInfo;
+				DetectState1 = 1;
+				Framenum = stOutFrame.stFrameInfo.nFrameNum;
+				//printf("Framenum:%d",Framenum);
+				if (Framenum % (encodeparam.FrameCut + 1) == BeatRecord)
+				{
+					if (EncodeEnable)
+					{
+						CodeState1 = 1;
+						GetImage1 = 0;
+						CalEnd1 = 1;
+					}
+				}
+				else
+				{
+					if (CalEnable) {
+						CalEnd1 = 0;
+						GetImage1 = 1;
+					}
+				}
+				
+			}
 		}
+		
 	}
 }
 
@@ -494,19 +843,65 @@ void EncodeMJPEGThread()
 		{
 			encodeparam.pBufAddr = Buffer0;
 			encodeparam.pts = pts;
+
+			if (EnableCSSend) {
+				if (PerforFrameencAll)
+				{
+					if (PerforFrameencAll >= FrameRateControlPic)
+					{
+						if ((pts % ((PerforFrameencAll / FrameRateControlPic))) == 0) {
+							thread SendBuffer0(ResizeAndSendPic);
+							SendBuffer0.detach();
+						}
+					}
+					else if (PerforFrameencAll < FrameRateControlPic)
+					{
+						thread SendBuffer0(ResizeAndSendPic);
+						SendBuffer0.detach();
+					}
+				}
+			}
+			
+			
+			
 			encoder.EncodeMJPEG(encodeparam);
 			pts++;
 			CodeState0 = 0;
-			PerforFrameenc++;
+			PerforFrameenc++;	
+			//SendBuffer0.join();
+			
 		}
 		else if (CodeState1 && !Buffer1Mutex)
 		{
 			encodeparam.pBufAddr = Buffer1;
 			encodeparam.pts = pts;
+
+			if (EnableCSSend)
+			{
+				if (PerforFrameencAll)
+				{
+					if (PerforFrameencAll >= FrameRateControlPic)
+					{
+						if ((pts % ((PerforFrameencAll / FrameRateControlPic))) == 0) {
+							thread SendBuffer1(ResizeAndSendPic);
+							SendBuffer1.detach();
+						}
+					}
+					else if (PerforFrameencAll < FrameRateControlPic)
+					{
+						thread SendBuffer1(ResizeAndSendPic);
+						SendBuffer1.detach();
+					}
+				}
+			}
+			
+			
 			encoder.EncodeMJPEG(encodeparam);
 			pts++;
 			CodeState1 = 0;
 			PerforFrameenc++;
+			//SendBuffer1.join();
+			
 		}
 	}
 }
@@ -520,12 +915,52 @@ void TimerPerformance()
 		{
 			if (CalEnable&&!EncodeEnable) {
 				printf("The Calculate Framerate is %d fps\n", PerforFramecnt);
+				if (IsFirst)
+				{
+					//Record The FrameRate
+					PerforFramecntAll = PerforFramecnt;
+					IsFirst = false;
+				}
+				
+				else if (!IsFirst)
+				{
+					//Record The Average FrameRate
+					PerforFramecntAll = (PerforFramecnt + PerforFramecntAll) / 2;
+				}
+				
 			}
 			else if (!CalEnable&&EncodeEnable) {
 				printf("\n\n\n\nThe Encode Framerate is %d fps\n\n\n\n", PerforFrameenc);
+				if (IsFirst)
+				{
+					//Record The FrameRate
+					PerforFrameencAll = PerforFrameenc;
+					IsFirst = false;
+				}
+
+				else if (!IsFirst)
+				{
+					//Record The Average FrameRate
+					PerforFrameencAll = (PerforFrameenc + PerforFrameencAll) / 2;
+				}
+				
 			}
 			else if (CalEnable&&EncodeEnable) {
 				printf("\n\n\n\n\nThe Calculate Framerate is %d fps, \t The Encode Framerate is %d fps\n\n\n\n\n\n", PerforFramecnt,PerforFrameenc);
+				if (IsFirst)
+				{
+
+					//Record The FrameRate
+					PerforFramecntAll = PerforFramecnt;
+					PerforFrameencAll = PerforFrameenc;
+					IsFirst = false;
+				}
+				else if (!IsFirst)
+				{
+					//Record The Average FrameRate
+					PerforFramecntAll = (PerforFramecnt + PerforFramecntAll) / 2;
+					PerforFrameencAll = (PerforFrameenc + PerforFrameencAll) / 2;
+				}
 			}
 			
 			watch.restart();
@@ -539,6 +974,66 @@ void TimerPerformance()
 	}
 	 
 }
+
+//Thread to Detect the unnormal consequeces
+void DetectThread() {
+	//The Debug Log to Check the result
+	//char * Filename = (char*)malloc(100);
+	//sprintf(Filename, "Detect%s.csv", camerainitparam.SerialNum);
+	//outFile.open(Filename, ios::out);
+	//free(Filename);
+	while (!DetectExit)
+	{
+		if (CodeState0 || GetImage0)
+		{
+			//if had not detected
+			if (DetectState0) {
+				//printf("");
+				if (Buffer0Info.nFrameNum > MaxCnt)
+				{
+					MaxCnt = Buffer0Info.nFrameNum;
+					//outFile << MaxCnt << "," << BeatRecord << endl;
+				}
+				else if (Buffer0Info.nFrameNum < MaxCnt)
+				{
+					//BeatRecord = ((BeatRecord - MaxCnt - 1) % (encodeparam.FrameCut + 1)+ (encodeparam.FrameCut + 1)*2 -5 )% (encodeparam.FrameCut + 1);
+					AnalyzeEnd = false;
+					printf("BeatRecord Change");
+					MaxCnt = Buffer0Info.nFrameNum;
+					//outFile << MaxCnt <<","<< BeatRecord <<endl;
+				}
+				DetectState0 = 0;
+			}
+			
+		}
+		else if (CodeState1 || GetImage1)
+		{
+			//printf("");
+			//if had not detected
+			if (DetectState1) {
+				if (Buffer1Info.nFrameNum > MaxCnt)
+				{
+					MaxCnt = Buffer1Info.nFrameNum;
+					//outFile << MaxCnt << "," << BeatRecord << endl;
+				}
+				else if (Buffer1Info.nFrameNum < MaxCnt)
+				{
+					//BeatRecord = ((BeatRecord - MaxCnt - 1) % (encodeparam.FrameCut + 1) + (encodeparam.FrameCut + 1)*2-5 ) % (encodeparam.FrameCut + 1);
+					printf("BeatRecord Change");
+					AnalyzeEnd = false;
+					MaxCnt = Buffer1Info.nFrameNum;
+					outFile << MaxCnt << "," << BeatRecord << endl;
+				}
+				DetectState1 = 0;
+			}
+			
+			
+		}
+		
+	}
+	outFile.close();
+}
+
 //The Extra thread for Send
 void SendResToPort() {
 
@@ -580,6 +1075,7 @@ BOOL __stdcall ConsoleHandler(DWORD cevent) {
 		CalExit = 1;
 		EncodeExit = 1;
 		TimerExit = 1;
+		DetectExit = 1;
 	}
 		break;
 	case CTRL_BREAK_EVENT:
@@ -594,6 +1090,7 @@ BOOL __stdcall ConsoleHandler(DWORD cevent) {
 		CalExit = 1;
 		EncodeExit = 1;
 		TimerExit = 1;
+		DetectExit = 1;
 
 		/*int ret = 0;
 		ret = CameraClean();
@@ -650,7 +1147,7 @@ int main(int argc,char* argv[])
 	
 	//COM port params
 	//FUnctionChoice
-	args.add<UINT>("function", 'f', "FunctionChoice", false, 1, cmdline::range(1, 9));
+	args.add<UINT>("function", 'f', "FunctionChoice", false, 1, cmdline::range(1, 10));
 	//CameraParam
 	args.add<FLOAT>("exptime", 'e', "CameraExposureTime", false, 13000, cmdline::range<FLOAT>(0, 1000000));
 	args.add<UINT>("expauto", '\0', "CameraExposureAuto", false, 0, cmdline::range(0, 2));
@@ -683,6 +1180,8 @@ int main(int argc,char* argv[])
 	args.add<FLOAT>("vo", '\0', "vo Param in pixels", false, 1008.4, cmdline::range<FLOAT>(-10000, 10000));
 	args.add<FLOAT>("fx", '\0', "fx Param in pixels", false, 2371.9, cmdline::range<FLOAT>(-10000, 10000));
 	args.add<FLOAT>("fy", '\0', "fy Param in pixels", false, 2358.9, cmdline::range<FLOAT>(-10000, 10000));
+	args.add<FLOAT>("kx", '\0', "kx Param for Angular Correction", false, 0.9558, cmdline::range<FLOAT>(-10000, 10000));
+	args.add<FLOAT>("ky", '\0', "ky Param for Angular Correction", false, 0.9558, cmdline::range<FLOAT>(-10000, 10000));
 	//EncoderParam
 	args.add<UINT>("fcut", 'c', "FrameCut", false, 5, cmdline::range(0, 60));
 	args.add<UINT>("brate", 'b', "BitRate", false, 200000000, cmdline::range(1000, 1000000000));
@@ -753,6 +1252,16 @@ int main(int argc,char* argv[])
 			;
 		}
 		break;
+		case 10:
+		{
+			CalEnable = 1;
+			EncodeEnable = 1;
+			EnableSendData = 1;
+			EnableCSSend = 1;
+		}
+		break;
+		default:
+			break;
 		}
 	}
 	//CameraExposureTime
@@ -913,7 +1422,16 @@ int main(int argc,char* argv[])
 	{
 		Calparam.fy = args.get<FLOAT>("fy");
 	}
-
+	//kx
+	if (args.exist("kx"))
+	{
+		Calparam.kx = args.get<FLOAT>("kx");
+	}
+	//ky
+	if (args.exist("ky"))
+	{
+		Calparam.ky = args.get<FLOAT>("ky");
+	}
 
 	//Encoder
 	//FrameCut
@@ -956,21 +1474,28 @@ int main(int argc,char* argv[])
 	//Addr
 	if (args.exist("serveraddr"))
 	{
-		clientparam.ServerAddr = args.get<string>("serveraddr").data();
+		//clientparam.ServerAddr = args.get<string>("serveraddr").data();
+		csclientparam.ServerAddr = args.get<string>("serveraddr").data();
+		dsclientparam.ServerAddr = args.get<string>("serveraddr").data();
 	}
 
 	//printf("ADDR :%s", clientparam.ServerAddr);
 
 
 	//add by ylxu at 2019-1-23
-	char * Filename = (char*)malloc(100);
+	/*char * Filename = (char*)malloc(100);
 	sprintf(Filename, "Send%d.csv", camerainitparam.devNum);
 	outFile.open(Filename, ios::out);
 	free(Filename);
+*/
 
+	//Test Camera 
+	//const char *CST = "00660023843";
+	//memcpy(camerainitparam.SerialNum, CST, sizeof(camerainitparam.SerialNum));
 
 	int ret;
 	//camerainitparam.AcquisitionFrameRate = 60.0;
+	//camerainitparam.devNum = 0;
 	ret = CameraInit(camerainitparam);
 	if (ret) {
 		printf("Camera Init failed\n");
@@ -983,7 +1508,7 @@ int main(int argc,char* argv[])
 
 	FinalPath = (char*)malloc(500);
 
-	ret = CreateFolder(FilePath, FinalPath, camerainitparam.devNum);
+	ret = CreateFolder(FilePath, FinalPath, camerainitparam.SerialNum);
 	if (!ret)
 	{
 		printf("Create Folder Failed\n");
@@ -991,12 +1516,15 @@ int main(int argc,char* argv[])
 	encoderparam.filepath = FinalPath;
 	encodeparam.filepath = FinalPath;
 
-	encoderparam.CameraNum = camerainitparam.devNum;
+	strcpy((char*)encoderparam.SerialNum,(char*)camerainitparam.SerialNum);
+
+	//encoderparam.CameraNum = camerainitparam.devNum;
 	encodeparam.CameraNum = camerainitparam.devNum;
 
 	if (Format == 0)
 	{
 		EncoderMJPEGInit(encoderparam);
+		//CsClinetInit();
 	}
 	else if (Format == 1)
 	{
@@ -1009,7 +1537,16 @@ int main(int argc,char* argv[])
 	//scanf("%d", &EnableSendData);
 	if (EnableSendData) {
 		ClientInit();
+		//CsClinetInit();
+		//DsClientInit();
 	}
+
+	if (EnableCSSend)
+	{
+		CsClinetInit();
+		DsClientInit();
+	}
+	
 	
 	//Encodeparam
 	encodeparam.nHeight = ImageHeight;
@@ -1019,9 +1556,9 @@ int main(int argc,char* argv[])
 	//AcqImageThread();
 	//watch.start();
 
-	//放置程序关闭监听
+	//放置 程序关闭 监听
 	SetConsoleCtrlHandler(ConsoleHandler, TRUE);
-
+	thread detecthread(DetectThread);
 	thread acqthread(AcqImageThread);
 
 	if (CalEnable&&!EncodeEnable) {
@@ -1075,6 +1612,7 @@ int main(int argc,char* argv[])
 	}
 
 	acqthread.join();
+	detecthread.join();
 
 	//SendClient.join();
 	printf("Stop Grabing……\n");
@@ -1093,8 +1631,19 @@ int main(int argc,char* argv[])
 		printf("Stop Encoding......\n");
 		EncoderJPEGClean();
 	}
+	if (EnableSendData) {
+		ClientClean();
+		//CsClientClean();
+		//DsClientClean();
+	}
+	//ClientClean();
+
+	if (EnableCSSend)
+	{
+		CsClientClean();
+		DsClientClean();
+	}
 	
-	ClientClean();
 
 	free(FinalPath);
 

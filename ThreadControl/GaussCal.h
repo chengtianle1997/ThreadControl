@@ -44,6 +44,8 @@ typedef struct
 	int threads = 2; //threads used in OpenMP for Calculation
 
 	//The Physical Param Input(From Calib Result)
+	double kx = 0.9558;
+	double ky = 0.9558;
 	double b = 492.4;
 	double phi = 1.168;
 	double uo = 1226.7;

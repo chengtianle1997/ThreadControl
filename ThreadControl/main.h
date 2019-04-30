@@ -42,6 +42,10 @@ EncodeParam encodeparam;
 
 ClientParam clientparam;
 
+CsClientParam csclientparam;
+
+DsClientParam dsclientparam;
+
 //State of occupation
 BOOL Buffer0Mutex = 0;
 BOOL Buffer1Mutex = 0;
@@ -57,6 +61,11 @@ BOOL CalEnd1 = 0;
 //Indicate the require to encode
 BOOL CodeState0 = 0;
 BOOL CodeState1 = 0;
+
+//Indicate the require to detect   
+//1 represent the buffer to detect
+BOOL DetectState0 = 0;
+BOOL DetectState1 = 0;
 
 
 //The double buffer
@@ -76,23 +85,46 @@ int CalExit = 0;
 int EncodeExit = 0;
 int SendExit = 0;
 int TimerExit = 0;
+int DetectExit = 0;
 
 //Functional choice
 int ResVisAuto = 0;
 int ResVisManu = 0;
 int EncodeEnable = 0;
 int CalEnable = 1;
-int EnableSendData = 0;
+int EnableSendData = 0; 
+int EnableCSSend = 0;
+
 int PrintDevList = 0;
 int SetDevNum = 0;
 
+//Test Encode and Send
+//int EnableSendData = 1;
+//int EncodeEnable = 1;
+//////////////////////
+
 int PerforFramecnt = 0;
 int PerforFrameenc = 0;
+//Record The FrameRate Every Second
+int PerforFramecntAll = 40;
+int PerforFrameencAll = 10;
+//Wanted FrameRate input
+int FrameRateControlPic = 2;
+int FrameRateControlData = 10;
+
+//Is First Second
+bool IsFirst = true;
+bool IsSecond = false;
+
+//The Param for Detect thread
+int MaxCnt = 0;
+int BeatRecord = 0;
 
 //The Server Information
 int Serverport;
 int ServerStartup = 8001;
 const char* ServerAddr = "127.0.0.1";
+//const char* CsServerAddr = "127.0.0.1";
 
 //The Socket Package
 //SocketPackage *Sockpack = { 0 };
@@ -102,9 +134,12 @@ static queue<SocketPackage> SendQueue;
 
 //The Application Entrance
 //int DeviceNum = 0;
-const char* FilePath = "C:\\EncodeResult";
+const char* FilePath = "D:\\EncodeResult";
 char* FinalPath;
 const char* SrNum;
 
 int Format = 0;
 
+bool AnalyzeEnd = false;
+bool CalAvrEnd = false;
+bool FindBeatEnable = false;
