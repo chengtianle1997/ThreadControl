@@ -8,6 +8,7 @@
 #include <vector>
 #include <stdio.h> 
 #include <fstream> 
+#include "mkl.h"
 
 using namespace std;
 using namespace cv;
@@ -42,6 +43,8 @@ typedef struct
 	double minError = 0.13; //the error to bottom for Gausspoint selection
 	int xRange = 15; //horizontal range base on the estimated center for Gausspoint selection
 	int threads = 2; //threads used in OpenMP for Calculation
+	int StartScan = 500;
+	int EndScan = 1400;
 
 	//The Physical Param Input(From Calib Result)
 	double kx = 0.9558;
@@ -52,6 +55,11 @@ typedef struct
 	double vo = 1008.4;
 	double fx = 2371.9;
 	double fy = 2358.9;
+
+	double RangeMin = 1500;
+	double RangeMax = 4000;
+
+	int CalScale = 2;
 	
 }GaussCalParam;
 

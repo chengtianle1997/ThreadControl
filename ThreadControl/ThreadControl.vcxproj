@@ -71,6 +71,7 @@
     <Import Project="..\..\OpenCV.props" />
     <Import Project="..\..\MVS.props" />
     <Import Project="..\..\FFmpeg.props" />
+    <Import Project="MKL.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />

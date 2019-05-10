@@ -426,6 +426,94 @@ void SendDataToCsServer() {
 
 }
 
+//void SendDataToCsServer() {
+//	if (GetImage0 && !CalEnd0 && !Buffer0Mutex) {
+//		//Package the Data
+//		//SocketPackageTrim PackageData0;
+//		SocketPackage PackageData0;
+//		for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
+//		{
+//			PackageData0.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+//		}
+//
+//		PackageData0.Framecnt = Buffer0Info.nFrameNum;
+//		//for (int i = 0; i < DataRows/DataTrim; i++)
+//		for (int i = 0; i < DataRows; i++)
+//		{
+//			/*PackageData0.s[i] = Calparam.point[i*DataTrim].s;
+//			PackageData0.ay[i] = Calparam.point[i*DataTrim].ay;*/
+//			PackageData0.s[i] = Calparam.point[i].s;
+//			PackageData0.ay[i] = Calparam.point[i].ay;
+//		}
+//
+//		//outFile << PackageData0.SerialNumber << "," << PackageData0.Framecnt;
+//		//outFile << endl;
+//
+//		//SendQueue.push(PackageData0);
+//		//int q = SendQueue.size();
+//		if (EnableSendData)
+//		{
+//			/*char* buf = (char*)malloc(sizeof(SocketPackageTrim));
+//
+//			memcpy(buf, &PackageData0, sizeof(SocketPackageTrim));
+//
+//			client.DsClientSend(buf, sizeof(SocketPackageTrim));
+//
+//			free(buf);*/
+//			char* buf = (char*)malloc(sizeof(SocketPackage));
+//
+//			memcpy(buf, &PackageData0, sizeof(SocketPackage));
+//
+//			client.DsClientSend(buf, sizeof(SocketPackage));
+//
+//			free(buf);
+//
+//		}
+//	}
+//
+//	else if (GetImage1 && !CalEnd1 && !Buffer1Mutex)
+//	{
+//		//Package the Data
+//		//SocketPackageTrim PackageData1;
+//		SocketPackage PackageData1;
+//		for (int i = 0; i < INFO_MAX_BUFFER_SIZE; i++)
+//		{
+//			PackageData1.SerialNumber[i] = camerainitparam.DevInfo.SpecialInfo.stUsb3VInfo.chSerialNumber[i];
+//		}
+//
+//		PackageData1.Framecnt = Buffer0Info.nFrameNum;
+//		//for (int i = 0; i < DataRows / DataTrim; i++)
+//		for (int i = 0; i < DataRows; i++)
+//		{
+//			/*PackageData1.s[i] = Calparam.point[i*DataTrim].s;
+//			PackageData1.ay[i] = Calparam.point[i*DataTrim].ay;*/
+//			PackageData1.s[i] = Calparam.point[i].s;
+//			PackageData1.ay[i] = Calparam.point[i].ay;
+//		}
+//
+//		//outFile << PackageData1.SerialNumber << "," << PackageData1.Framecnt;
+//		//outFile << endl;
+//
+//		//SendQueue.push(PackageData1);
+//		if (EnableSendData)
+//		{
+//			/*char* buf = (char*)malloc(sizeof(SocketPackageTrim));
+//
+//			memcpy(buf, &PackageData1, sizeof(SocketPackageTrim));
+//
+//			client.DsClientSend(buf, sizeof(SocketPackageTrim));*/
+//			char* buf = (char*)malloc(sizeof(SocketPackage));
+//
+//			memcpy(buf, &PackageData1, sizeof(SocketPackage));
+//
+//			client.DsClientSend(buf, sizeof(SocketPackage));
+//
+//		}
+//	}
+//
+//}
+
+
 int CreateFolder(const char* filepath, char* finalpath, unsigned char* SerialNum)
 {
 	int nRet;
@@ -1474,7 +1562,7 @@ int main(int argc,char* argv[])
 	//Addr
 	if (args.exist("serveraddr"))
 	{
-		//clientparam.ServerAddr = args.get<string>("serveraddr").data();
+		clientparam.ServerAddr = args.get<string>("serveraddr").data();
 		csclientparam.ServerAddr = args.get<string>("serveraddr").data();
 		dsclientparam.ServerAddr = args.get<string>("serveraddr").data();
 	}
