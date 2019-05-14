@@ -64,7 +64,7 @@ void GaussCal::GaussCenter(GaussCalParam &guasscalparam) {
 		uchar* data = guasscalparam.matImage.ptr<uchar>(i);
 		int MaxPixel = data[0];
 		int MaxX(0);
-		for (int j = 1; j < Cols; j++)
+		for (int j = guasscalparam.StartScan; j < guasscalparam.EndScan; j++)
 		{
 			if (data[j] > MaxPixel) {
 				MaxPixel = data[j];
@@ -233,7 +233,16 @@ void GaussCal::GaussCenter(GaussCalParam &guasscalparam) {
 			guasscalparam.point[i].bright = exp(cvmGet(B, 0, 0) - cvmGet(B, 1, 0)*cvmGet(B, 1, 0) / (4 * cvmGet(B, 2, 0)));
 			guasscalparam.point[i].ay = atan((guasscalparam.vo - guasscalparam.point[i].cy) / guasscalparam.fy);
 			//guasscalparam.point[i].ay = asin(guasscalparam.ky*sin(atan((guasscalparam.vo - guasscalparam.point[i].cy)/ guasscalparam.fy)));
-			guasscalparam.point[i].s = guasscalparam.b*tan(guasscalparam.phi + atan((guasscalparam.uo - guasscalparam.point[i].cx) / guasscalparam.fx))/cos(guasscalparam.point[i].ay);
+			double sDistance = guasscalparam.b*tan(guasscalparam.phi + atan((guasscalparam.uo - guasscalparam.point[i].cx) / guasscalparam.fx)) / cos(guasscalparam.point[i].ay);
+			if (sDistance >= guasscalparam.RangeMin && sDistance <= guasscalparam.RangeMax )
+			{
+				guasscalparam.point[i].s = sDistance;
+			}
+			else 
+			{
+				guasscalparam.point[i].s = 0;
+			}
+			
 			//guasscalparam.point[i].s = guasscalparam.b*tan(guasscalparam.phi + asin(guasscalparam.kx*sin(atan((guasscalparam.uo - guasscalparam.point[i].cx) / guasscalparam.fx)))) / cos(guasscalparam.point[i].ay);
 
 			//watch.stop();

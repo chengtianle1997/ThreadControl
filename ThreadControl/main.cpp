@@ -1474,7 +1474,7 @@ int main(int argc,char* argv[])
 	//Addr
 	if (args.exist("serveraddr"))
 	{
-		//clientparam.ServerAddr = args.get<string>("serveraddr").data();
+		clientparam.ServerAddr = args.get<string>("serveraddr").data();
 		csclientparam.ServerAddr = args.get<string>("serveraddr").data();
 		dsclientparam.ServerAddr = args.get<string>("serveraddr").data();
 	}
